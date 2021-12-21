@@ -2,7 +2,8 @@
 #include <Arduino.h>
 #include "imxrt.h"
 
-TeensyTimerTool::PeriodicTimer Teensy4NTSC::timer = TeensyTimerTool::PeriodicTimer(TeensyTimerTool::GPT1);
+
+IntervalTimer Teensy4NTSC::timer = IntervalTimer();
 int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
 
 Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
@@ -161,6 +162,58 @@ void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, bool clea
 		line(x1, y1, x1, y0, clear);
 		line(x0, y0, x1, y0, clear);
 	}
-
 	
 }
+
+
+void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, bool clear)
+{
+	if(fill){
+		line(xc+x, yc+y, xc-x, yc+y, clear);
+		line(xc-x, yc+y, xc+x, yc+y, clear);
+	    line(xc+x, yc-y, xc-x, yc-y, clear);
+	    line(xc-x, yc-y, xc+x, yc-y, clear);
+	    line(xc+y, yc+x, xc-y, yc+x, clear);
+	    line(xc-y, yc+x, xc+y, yc+x, clear);
+	    line(xc+y, yc-x, xc-y, yc-x, clear);
+	    line(xc-y, yc-x, xc+y, yc-x, clear);
+	}
+	else{
+	    pixel(xc+x, yc+y, clear);
+	    pixel(xc-x, yc+y, clear);
+	    pixel(xc+x, yc-y, clear);
+	    pixel(xc-x, yc-y, clear);
+	    pixel(xc+y, yc+x, clear);
+	    pixel(xc-y, yc+x, clear);
+	    pixel(xc+y, yc-x, clear);
+	    pixel(xc-y, yc-x, clear);
+	}
+}
+ 
+
+void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool clear)
+{
+    int x = 0, y = r;
+    int d = 3 - 2 * r;
+    circleStep(xc, yc, x, y, fill, clear);
+    while (y >= x)
+    {
+        // for each pixel we will
+        // draw all eight pixels
+         
+        x++;
+ 
+        // check for decision parameter
+        // and correspondingly
+        // update d, x, y
+        if (d > 0)
+        {
+            y--;
+            d = d + 4 * (x - y) + 10;
+        }
+        else
+            d = d + 4 * x + 6;
+        circleStep(xc, yc, x, y, fill, clear);
+    }
+}
+

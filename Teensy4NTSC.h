@@ -1,5 +1,4 @@
-#include "TeensyTimerTool.h"
-
+#include "IntervalTimer.h"
 
 // NTSC horiz sync timing
 #define H_SYNC 4.7
@@ -23,12 +22,13 @@ public:
 	void 	pixel(int x, int y, bool clear = false);
 	void	line(int x0, int y0, int x1, int y1, bool clear = false);
 	void	rectangle(int x0, int y0, int x1, int y1, bool fill = false, bool clear = false);
+	void	circle(int xc, int yc, int r, bool fill = false, bool clear = false);
 
 
 
 private:
 	static int buffer[V_RES][H_WORDS];
-	static TeensyTimerTool::PeriodicTimer timer;
+	static IntervalTimer timer;
 
     static void	sendLine();
 
@@ -38,4 +38,7 @@ private:
     int 	clampH(int v){ return MIN(255, MAX(0, v));}
     int 	clampV(int v){ return MIN(215, MAX(0, v));}
     void 	order(int* v0, int* v1);
+
+    void	circleStep(int xc, int yc, int x, int y, bool fill, bool clear);
+    
 };

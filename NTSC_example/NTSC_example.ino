@@ -29,14 +29,17 @@ void setup() {
    ntsc.line(128, 108, 0, 108);
    ntsc.line(128, 108, 255, 108);
 
-   //ntsc.rectangle(0, 0, 255, 215);
+   ntsc.rectangle(0, 0, 255, 215);
    ntsc.rectangle(0, 0, 20, 20, true);
    ntsc.rectangle(5, 5, 15, 15, true, true);
    ntsc.rectangle(255, 215, 235, 195, true);
    ntsc.rectangle(250, 210, 240, 200, true, true);
 
    
-   
+   ntsc.circle(128, 108, 20, true);
+   ntsc.circle(128, 108, 10, true, true);
+   ntsc.circle(128, 108, 25);
+
 }
 
 
