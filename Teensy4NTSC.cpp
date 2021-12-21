@@ -1,15 +1,15 @@
 #include "Teensy4NTSC.h"
 #include <Arduino.h>
 #include "imxrt.h"
-
+#include "font8x12.h"
 
 IntervalTimer Teensy4NTSC::timer = IntervalTimer();
 int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
 
 Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
 	// Setup black pin
-	pinMode(3, OUTPUT);
-   	digitalWriteFast(3, HIGH);  	
+	pinMode(pinBlack, OUTPUT);
+   	digitalWriteFast(pinBlack, HIGH);  	
 
    	//start timer to interrupt at each line  	
    	timer.begin(sendLine, 63.5);
@@ -22,11 +22,26 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Enable FlexIO module
    	FLEXIO2_CTRL |= 1;   
-   	// Pad MUX 
-   	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4;
+   	// Pad MUX  
+   	int FLEXIO2PIN = 0; 	
+   	switch(pinWhite){
+   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN = 10;break;	
+		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN = 11;break;	
+		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN = 0;break;
+		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN = 1;break;
+		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN = 2;break;
+		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN = 3;break;
+		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN = 12;break;	
+		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN = 13;break;	
+		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN = 16;break;	
+		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN = 17;break;	
+		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN = 18;break;	
+		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN = 19;break;	
+   	}
+
    	// Shifter to pin
    	FLEXIO2_SHIFTCFG0 = 0x00000120; // set stop bit 0 otherwise line stays high
-   	FLEXIO2_SHIFTCTL0 = 0x00030002;
+   	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN << 8);
    	// Shift counter
    	FLEXIO2_TIMCMP0 = 0x000001FF; // (H_RES * 2) - 1 
    	FLEXIO2_TIMCTL0 = 0x07400003;
@@ -196,16 +211,8 @@ void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool clear)
     int x = 0, y = r;
     int d = 3 - 2 * r;
     circleStep(xc, yc, x, y, fill, clear);
-    while (y >= x)
+    while (y >= x++)
     {
-        // for each pixel we will
-        // draw all eight pixels
-         
-        x++;
- 
-        // check for decision parameter
-        // and correspondingly
-        // update d, x, y
         if (d > 0)
         {
             y--;
@@ -215,5 +222,25 @@ void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool clear)
             d = d + 4 * x + 6;
         circleStep(xc, yc, x, y, fill, clear);
     }
+}
+
+
+void Teensy4NTSC::character(int c, int x, int y, bool invert){	
+	for(int j = 0; j < 12; j++){
+		char row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
+		for(int i = 0; i < 8; i++){
+			bool p = (row & (0x80 >> i)) ? false : true;  
+			p = invert ? !p : p;
+			pixel(x + i, y - j, p);
+		}
+	}
+}
+
+void Teensy4NTSC::text(const char* s, int x, int y, bool invert){
+	char c;
+	while((c = *s++)){
+		character(c, x, y, invert);
+		x += 8;
+	}
 }
 

@@ -16,13 +16,25 @@ typedef unsigned char byte;
 class Teensy4NTSC {
 public:
 	Teensy4NTSC(){}
+
+	// Create object setting signal output pin selections
+	// pinBlack = any digital pin
+	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
 	Teensy4NTSC(byte pinBlack, byte pinWhite);
 
+	// Clear screen with optional bit pattern
 	void	clear(int v = 0);
+	// Set or clear a pixel at a specified (x, y) coordinate 		
 	void 	pixel(int x, int y, bool clear = false);
+	// Draw or clear a line from (x0,y0) to (x1,y1) 
 	void	line(int x0, int y0, int x1, int y1, bool clear = false);
+	// Draw or clear a filled or empty rectangle defined by lower left and top right coordinates
 	void	rectangle(int x0, int y0, int x1, int y1, bool fill = false, bool clear = false);
+	// Draw or clear a filled or empty circle defined by center and radius
 	void	circle(int xc, int yc, int r, bool fill = false, bool clear = false);
+
+	void	character(int c, int x, int y, bool invert = false);
+	void	text(const char* s, int x, int y, bool invert = false);
 
 
 
