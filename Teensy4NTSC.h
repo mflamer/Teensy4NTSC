@@ -32,9 +32,10 @@ public:
 	void	rectangle(int x0, int y0, int x1, int y1, bool fill = false, bool clear = false);
 	// Draw or clear a filled or empty circle defined by center and radius
 	void	circle(int xc, int yc, int r, bool fill = false, bool clear = false);
-
+	// Draw a single character at a specified coordinate. Optionaly inverted.
 	void	character(int c, int x, int y, bool invert = false);
-	void	text(const char* s, int x, int y, bool invert = false);
+	// Draw a single string of characters at a specified coordinate. Optionaly inverted.
+	void	text(char* s, int x, int y, bool invert = false);
 
 
 

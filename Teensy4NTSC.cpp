@@ -236,7 +236,7 @@ void Teensy4NTSC::character(int c, int x, int y, bool invert){
 	}
 }
 
-void Teensy4NTSC::text(const char* s, int x, int y, bool invert){
+void Teensy4NTSC::text(char* s, int x, int y, bool invert){
 	char c;
 	while((c = *s++)){
 		character(c, x, y, invert);
