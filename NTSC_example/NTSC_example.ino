@@ -10,6 +10,7 @@ void setup() {
 	// Create object setting signal output pin selections
 	// pinBlack = any digital pin
 	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
+	// Teensy4NTSC(byte pinBlack, byte pinWhite);
    	ntsc = Teensy4NTSC(3, 7);   
    	ntsc.clear(0x80000000);
    	   
@@ -56,6 +57,7 @@ int y = 108;
 
 void loop() {
 
+<<<<<<< Updated upstream
 
 	// fizz
 	for (int i = 0; i < 150; i++)
@@ -76,6 +78,12 @@ void loop() {
 	// ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
 	// y += y_;
 	// ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
+=======
+  	delay(30);  	
+	ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
+	y += y_;
+	ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
+>>>>>>> Stashed changes
 	   
  //    // randomly set y delta
  //    if(cnt == 10){
