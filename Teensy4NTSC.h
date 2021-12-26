@@ -1,4 +1,5 @@
-#include "IntervalTimer.h"
+#include <IntervalTimer.h>
+#include <DMAChannel.h>
 
 // NTSC horiz sync timing
 #define H_SYNC 4.7
@@ -42,6 +43,7 @@ public:
 private:
 	static int buffer[V_RES][H_WORDS];
 	static IntervalTimer timer;
+	static DMAChannel dma;
 
     static void	sendLine();
 

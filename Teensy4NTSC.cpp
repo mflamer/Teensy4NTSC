@@ -1,9 +1,10 @@
 #include "Teensy4NTSC.h"
 #include <Arduino.h>
-#include "imxrt.h"
+#include <imxrt.h>
 #include "font8x12.h"
 
 IntervalTimer Teensy4NTSC::timer = IntervalTimer();
+DMAChannel Teensy4NTSC::dma = DMAChannel(false);
 int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
 
 Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
@@ -13,6 +14,19 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
 
    	//start timer to interrupt at each line  	
    	timer.begin(sendLine, 63.5);
+
+   //DMA Setup
+   dma.begin();
+   dma.disable();
+   dma.sourceBuffer((int*)buffer, H_WORDS);
+   dma.transferSize(1);
+   dma.destination(FLEXIO2_SHIFTBUFBIS0);
+   dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
+   //dma1.triggerContinuously();
+   dma.enable();
+
+
+
 	
    	// Setup FlexIO (white pin)
    	// Fast FlexIO CLK  
@@ -50,21 +64,9 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	FLEXIO2_TIMCMP1 = 0x00000009; // (PixelRateDiv / 2) - 1
    	FLEXIO2_TIMCTL1 = 0x01C00003;
    	FLEXIO2_TIMCFG1 = 0x00001200;
-   	// Shifter chain
-   	FLEXIO2_SHIFTCFG1 = 0x00000100;
-   	FLEXIO2_SHIFTCFG2 = 0x00000100;
-   	FLEXIO2_SHIFTCFG3 = 0x00000100;
-   	FLEXIO2_SHIFTCFG4 = 0x00000100;
-   	FLEXIO2_SHIFTCFG5 = 0x00000100;
-   	FLEXIO2_SHIFTCFG6 = 0x00000100;
-   	FLEXIO2_SHIFTCFG7 = 0x00000100;
-   	FLEXIO2_SHIFTCTL1 = 0x00000002;
-   	FLEXIO2_SHIFTCTL2 = 0x00000002;
-   	FLEXIO2_SHIFTCTL3 = 0x00000002;
-   	FLEXIO2_SHIFTCTL4 = 0x00000002;
-   	FLEXIO2_SHIFTCTL5 = 0x00000002;
-   	FLEXIO2_SHIFTCTL6 = 0x00000002;
-   	FLEXIO2_SHIFTCTL7 = 0x00000002;
+   	// Shifter DMA
+   	FLEXIO2_SHIFTSDEN |= 1;
+   	
    	
 }
 
@@ -75,13 +77,7 @@ void Teensy4NTSC::sendLine(){
       delayMicroseconds(H_SYNC);
       digitalWriteFast(3, HIGH);
       delayMicroseconds(H_BACK);       
-      FLEXIO2_SHIFTBUFBIS1 = buffer[line - V_START][1];
-      FLEXIO2_SHIFTBUFBIS2 = buffer[line - V_START][2];
-      FLEXIO2_SHIFTBUFBIS3 = buffer[line - V_START][3];
-      FLEXIO2_SHIFTBUFBIS4 = buffer[line - V_START][4];      
-      FLEXIO2_SHIFTBUFBIS5 = buffer[line - V_START][5];
-      FLEXIO2_SHIFTBUFBIS6 = buffer[line - V_START][6];      
-      FLEXIO2_SHIFTBUFBIS7 = buffer[line - V_START][7];
+      
       FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];             
    }
    else if(line == V_SYNC){        
