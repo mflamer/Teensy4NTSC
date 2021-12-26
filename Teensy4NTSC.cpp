@@ -1,6 +1,6 @@
 #include "Teensy4NTSC.h"
 #include <Arduino.h>
-#include "imxrt.h"
+//#include "imxrt.h"
 #include "font8x12.h"
 
 IntervalTimer Teensy4NTSC::timer = IntervalTimer();
