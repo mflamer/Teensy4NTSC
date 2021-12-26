@@ -55,18 +55,34 @@ int y = 108;
 
 
 void loop() {
-	
-  	delay(30);  	
-	ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
-	y += y_;
-	ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
+
+
+	// fizz
+	for (int i = 0; i < 150; i++)
+  	{
+    	int x = random(255);
+    	int y = random(215);
+    	int r = random(25);
+    	bool fill = random(0, 2); 
+    	bool clear = random(0, 2);
+    	delay(20);
+        ntsc.circle(x, y, r, fill, clear);
+  	}
+  	delay(200);
+  	ntsc.clear();
+  	
+	// // random eraser
+ //  	delay(30);  	
+	// ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
+	// y += y_;
+	// ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
 	   
-    // randomly set y delta
-    if(cnt == 10){
-		y_ = random(-1, 2);
-		cnt = 0;
-	}
-	cnt++;  
+ //    // randomly set y delta
+ //    if(cnt == 10){
+	// 	y_ = random(-1, 2);
+	// 	cnt = 0;
+	// }
+	// cnt++;  
    
 }
 
