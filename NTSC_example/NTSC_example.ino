@@ -57,7 +57,6 @@ int y = 108;
 
 void loop() {
 
-<<<<<<< Updated upstream
 
 	// fizz
 	for (int i = 0; i < 150; i++)
