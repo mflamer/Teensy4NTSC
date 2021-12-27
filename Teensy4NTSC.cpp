@@ -22,7 +22,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
-   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
+   	//dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
    	dma.enable();
 
 
@@ -54,7 +54,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	}
 
    	// Shifter to pin
-   	FLEXIO2_SHIFTCFG0 = 0x00000120; // set stop bit 0 otherwise line stays high
+   	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN << 8);
    	// Shift counter
    	FLEXIO2_TIMCMP0 = 0x0000003F; // (32 * 2) - 1 
@@ -80,8 +80,8 @@ void Teensy4NTSC::sendLine(){
       	
       	//FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];      	
 
-      	dma.sourceBuffer((int*)(&buffer[line - V_START]), H_WORDS * 4); 
-      	FLEXIO2_SHIFTSTAT = 1;          
+      	//dma.sourceBuffer((int*)(&buffer[line - V_START]), H_WORDS * 4); 
+      	//FLEXIO2_SHIFTSTAT = 1;          
    }
    else if(line == V_SYNC){        
 
