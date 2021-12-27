@@ -15,15 +15,15 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	//start timer to interrupt at each line  	
    	timer.begin(sendLine, 63.5);
 
-   //DMA Setup
-   dma.begin();
-   dma.disable();
-   dma.sourceBuffer((int*)buffer, H_WORDS);
-   dma.transferSize(1);
-   dma.destination(FLEXIO2_SHIFTBUFBIS0);
-   dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
-   //dma1.triggerContinuously();
-   dma.enable();
+   	//DMA Setup
+   	dma.begin();
+   	dma.disable();
+   	dma.sourceBuffer((int*)buffer, H_WORDS * 4);
+   	dma.transferSize(4);
+   	dma.destination(FLEXIO2_SHIFTBUFBIS0);
+   	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
+   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
+   	dma.enable();
 
 
 
@@ -57,7 +57,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	FLEXIO2_SHIFTCFG0 = 0x00000120; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN << 8);
    	// Shift counter
-   	FLEXIO2_TIMCMP0 = 0x000001FF; // (H_RES * 2) - 1 
+   	FLEXIO2_TIMCMP0 = 0x0000003F; // (32 * 2) - 1 
    	FLEXIO2_TIMCTL0 = 0x07400003;
    	FLEXIO2_TIMCFG0 = 0x00302630;
    	// Baud timer
@@ -73,12 +73,15 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
 void Teensy4NTSC::sendLine(){
 	static int line = 0;
 	if((line < (V_RES + V_START)) && (line >= V_START)){
-      digitalWriteFast(3, LOW);
-      delayMicroseconds(H_SYNC);
-      digitalWriteFast(3, HIGH);
-      delayMicroseconds(H_BACK);       
-      
-      FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];             
+      	digitalWriteFast(3, LOW);
+      	delayMicroseconds(H_SYNC);
+      	digitalWriteFast(3, HIGH);
+      	delayMicroseconds(H_BACK);
+      	
+      	//FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];      	
+
+      	dma.sourceBuffer((int*)(&buffer[line - V_START]), H_WORDS * 4); 
+      	FLEXIO2_SHIFTSTAT = 1;          
    }
    else if(line == V_SYNC){        
 
@@ -89,16 +92,7 @@ void Teensy4NTSC::sendLine(){
    else{
       digitalWriteFast(3, LOW);
       delayMicroseconds(H_SYNC);
-      digitalWriteFast(3, HIGH);
-      delayMicroseconds(H_BACK);       
-      FLEXIO2_SHIFTBUFBIS1 = 0;
-      FLEXIO2_SHIFTBUFBIS2 = 0;
-      FLEXIO2_SHIFTBUFBIS3 = 0;
-      FLEXIO2_SHIFTBUFBIS4 = 0;
-      FLEXIO2_SHIFTBUFBIS5 = 0;
-      FLEXIO2_SHIFTBUFBIS6 = 0;
-      FLEXIO2_SHIFTBUFBIS7 = 0;
-      FLEXIO2_SHIFTBUFBIS0 = 0;   
+      digitalWriteFast(3, HIGH);       
    }
 
    line++;
