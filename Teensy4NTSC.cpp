@@ -83,11 +83,8 @@ void Teensy4NTSC::sendLine(){
       FLEXIO2_SHIFTBUFBIS7 = buffer[line][7];
       FLEXIO2_SHIFTBUFBIS0 = buffer[line][0];             
    }
-   else if(line >= V_SYNC){        
-
+   else if(line >= V_SYNC){
       digitalWriteFast(3, LOW); 
-      delayMicroseconds(H_DEAD);
-      digitalWriteFast(3, HIGH); 
    }
    else{
       digitalWriteFast(3, LOW);
