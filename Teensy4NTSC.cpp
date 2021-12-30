@@ -86,22 +86,13 @@ void Teensy4NTSC::sendLine(){
    else if(line == V_SYNC){        
 
       digitalWriteFast(3, LOW); 
-      delayMicroseconds(58.86);
+      delayMicroseconds(H_DEAD);
       digitalWriteFast(3, HIGH); 
    }
    else{
       digitalWriteFast(3, LOW);
       delayMicroseconds(H_SYNC);
       digitalWriteFast(3, HIGH);
-      delayMicroseconds(H_BACK);       
-      FLEXIO2_SHIFTBUFBIS1 = 0;
-      FLEXIO2_SHIFTBUFBIS2 = 0;
-      FLEXIO2_SHIFTBUFBIS3 = 0;
-      FLEXIO2_SHIFTBUFBIS4 = 0;
-      FLEXIO2_SHIFTBUFBIS5 = 0;
-      FLEXIO2_SHIFTBUFBIS6 = 0;
-      FLEXIO2_SHIFTBUFBIS7 = 0;
-      FLEXIO2_SHIFTBUFBIS0 = 0;   
    }
 
    line++;
