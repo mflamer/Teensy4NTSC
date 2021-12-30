@@ -69,19 +69,19 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
 
 void Teensy4NTSC::sendLine(){
 	static int line = 0;
-	if((line < (V_RES + V_START)) && (line >= V_START)){
+	if(line < V_RES){
       digitalWriteFast(3, LOW);
       delayMicroseconds(H_SYNC);
       digitalWriteFast(3, HIGH);
       delayMicroseconds(H_BACK);       
-      FLEXIO2_SHIFTBUFBIS1 = buffer[line - V_START][1];
-      FLEXIO2_SHIFTBUFBIS2 = buffer[line - V_START][2];
-      FLEXIO2_SHIFTBUFBIS3 = buffer[line - V_START][3];
-      FLEXIO2_SHIFTBUFBIS4 = buffer[line - V_START][4];      
-      FLEXIO2_SHIFTBUFBIS5 = buffer[line - V_START][5];
-      FLEXIO2_SHIFTBUFBIS6 = buffer[line - V_START][6];      
-      FLEXIO2_SHIFTBUFBIS7 = buffer[line - V_START][7];
-      FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];             
+      FLEXIO2_SHIFTBUFBIS1 = buffer[line][1];
+      FLEXIO2_SHIFTBUFBIS2 = buffer[line][2];
+      FLEXIO2_SHIFTBUFBIS3 = buffer[line][3];
+      FLEXIO2_SHIFTBUFBIS4 = buffer[line][4];      
+      FLEXIO2_SHIFTBUFBIS5 = buffer[line][5];
+      FLEXIO2_SHIFTBUFBIS6 = buffer[line][6];      
+      FLEXIO2_SHIFTBUFBIS7 = buffer[line][7];
+      FLEXIO2_SHIFTBUFBIS0 = buffer[line][0];             
    }
    else if(line == V_SYNC){        
 

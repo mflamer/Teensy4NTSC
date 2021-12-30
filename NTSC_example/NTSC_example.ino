@@ -12,7 +12,7 @@ void setup() {
 	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
 	// Teensy4NTSC(byte pinBlack, byte pinWhite);
    	ntsc = Teensy4NTSC(3, 7);   
-   	ntsc.clear(0x80000000);
+   	ntsc.clear();
    	   
    	ntsc.line(128, 108, 255, 215);
    	ntsc.line(128, 108, 255, 0);
