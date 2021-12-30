@@ -3,17 +3,22 @@
 #include <imxrt.h>
 #include "font8x12.h"
 
+// NTSC horiz sync timing
+#define H_SYNC 4.7
+#define H_ACTIVE 58.8
+#define H_BACK 10
+
 IntervalTimer Teensy4NTSC::timer = IntervalTimer();
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
+int Teensy4NTSC::buffer[V_TOTAL_LINES][H_WORDS] = {0}; 
 
-Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
+Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
 	// Setup black pin
-	pinMode(pinBlack, OUTPUT);
-   	digitalWriteFast(pinBlack, HIGH);  	
+	//pinMode(pinSync, OUTPUT);
+   	//digitalWriteFast(pinSync, HIGH);  	
 
    	//start timer to interrupt at each line  	
-   	timer.begin(sendLine, 63.5);
+   	//timer.begin(sendLine, 63.5);
 
    	//DMA Setup
    	dma.begin();
@@ -22,7 +27,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
-   	//dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
+   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
    	dma.enable();
 
 
@@ -36,34 +41,75 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Enable FlexIO module
    	FLEXIO2_CTRL |= 1;   
-   	// Pad MUX  
-   	int FLEXIO2PIN = 0; 	
-   	switch(pinWhite){
-   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN = 10;break;	
-		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN = 11;break;	
-		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN = 0;break;
-		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN = 1;break;
-		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN = 2;break;
-		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN = 3;break;
-		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN = 12;break;	
-		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN = 13;break;	
-		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN = 16;break;	
-		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN = 17;break;	
-		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN = 18;break;	
-		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN = 19;break;	
+   	// Pad MUX 
+   	int FLEXIO2PIN_SYNC = 0; 	
+   	switch(pinSync){
+   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_SYNC = 10;break;	
+		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_SYNC = 11;break;	
+		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_SYNC = 0;break;
+		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_SYNC = 1;break;
+		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_SYNC = 2;break;
+		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_SYNC = 3;break;
+		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_SYNC = 12;break;	
+		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_SYNC = 13;break;	
+		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_SYNC = 16;break;	
+		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_SYNC = 17;break;	
+		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_SYNC = 18;break;	
+		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_SYNC = 19;break;	
    	}
+
+   	int FLEXIO2PIN_PIXELS = 0; 	
+   	switch(pinPixels){
+   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_PIXELS = 10;break;	
+		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_PIXELS = 11;break;	
+		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_PIXELS = 0;break;
+		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_PIXELS = 1;break;
+		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_PIXELS = 2;break;
+		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_PIXELS = 3;break;
+		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_PIXELS = 12;break;	
+		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_PIXELS = 13;break;	
+		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_PIXELS = 16;break;	
+		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_PIXELS = 17;break;	
+		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_PIXELS = 18;break;	
+		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_PIXELS = 19;break;	
+   	}
+
 
    	// Shifter to pin
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
-   	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN << 8);
+   	FLEXIO2_SHIFTCTL0 = 0x00020002 | (FLEXIO2PIN_PIXELS << 8);
    	// Shift counter
-   	FLEXIO2_TIMCMP0 = 0x0000003F; // (32 * 2) - 1 
+   	FLEXIO2_TIMCMP0 = 0x0000003F; // (32 * 2) - 1    
+   	FLEXIO2_TIMCFG0 = 0x00300630;
    	FLEXIO2_TIMCTL0 = 0x07400003;
-   	FLEXIO2_TIMCFG0 = 0x00302630;
-   	// Baud timer
+   	// Pixel timer
    	FLEXIO2_TIMCMP1 = 0x00000009; // (PixelRateDiv / 2) - 1
-   	FLEXIO2_TIMCTL1 = 0x01C00003;
-   	FLEXIO2_TIMCFG1 = 0x00001200;
+   	FLEXIO2_TIMCFG1 = 0x00006200;
+   	FLEXIO2_TIMCTL1 = 0x13400003;
+   	// H Sync Timer
+   	FLEXIO2_TIMCMP2 = 0x18FF; // low|high   0x15FF	
+   	FLEXIO2_TIMCFG2 = 0x00100000;
+   	FLEXIO2_TIMCTL2 = 0x0F420002 | (FLEXIO2PIN_SYNC << 8);   	
+   	// Sync & Line Timer Scaler
+   	FLEXIO2_TIMCMP3 = 0x0000001A; // (H_ACTIVE / 2) - 1   	
+   	FLEXIO2_TIMCFG3 = 0x00000000;
+   	FLEXIO2_TIMCTL3 = 0x00000003;
+   	// Active Line Timer
+   	FLEXIO2_TIMCMP4 = 0x28EF; // low|high   	
+   	FLEXIO2_TIMCFG4 = 0x00100000;
+   	FLEXIO2_TIMCTL4 = 0x0F400002;
+   	// V Sync Timer
+   	FLEXIO2_TIMCMP5 = 0x14EF; // low|high   	
+   	FLEXIO2_TIMCFG5 = 0x00100000;
+   	FLEXIO2_TIMCTL5 = 0x13410002 | (FLEXIO2PIN_SYNC << 8);
+   	// V Pixel Timer
+   	FLEXIO2_TIMCMP6 = 0x14EF; // low|high   	
+   	FLEXIO2_TIMCFG6 = 0x00100000;
+   	FLEXIO2_TIMCTL6 = 0x13410002 | (FLEXIO2PIN_PIXELS << 8);
+   	// H Sync Pixel Timer
+   	// FLEXIO2_TIMCMP7 = 0x18FF; // low|high   0x15FF	
+   	// FLEXIO2_TIMCFG7 = 0x00100000;
+   	// FLEXIO2_TIMCTL7 = 0x0F410002 | (FLEXIO2PIN_PIXELS << 8);
    	// Shifter DMA
    	FLEXIO2_SHIFTSDEN |= 1;
    	
@@ -73,10 +119,10 @@ Teensy4NTSC::Teensy4NTSC(byte pinBlack, byte pinWhite){
 void Teensy4NTSC::sendLine(){
 	static int line = 0;
 	if((line < (V_RES + V_START)) && (line >= V_START)){
-      	digitalWriteFast(3, LOW);
-      	delayMicroseconds(H_SYNC);
-      	digitalWriteFast(3, HIGH);
-      	delayMicroseconds(H_BACK);
+      	// digitalWriteFast(3, LOW);
+      	// delayMicroseconds(H_SYNC);
+      	// digitalWriteFast(3, HIGH);
+      	// delayMicroseconds(H_BACK);
       	
       	//FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];      	
 
@@ -85,14 +131,14 @@ void Teensy4NTSC::sendLine(){
    }
    else if(line == V_SYNC){        
 
-      digitalWriteFast(3, LOW); 
-      delayMicroseconds(58.86);
-      digitalWriteFast(3, HIGH); 
+      // digitalWriteFast(3, LOW); 
+      // delayMicroseconds(58.86);
+      // digitalWriteFast(3, HIGH); 
    }
    else{
-      digitalWriteFast(3, LOW);
-      delayMicroseconds(H_SYNC);
-      digitalWriteFast(3, HIGH);       
+      // digitalWriteFast(3, LOW);
+      // delayMicroseconds(H_SYNC);
+      // digitalWriteFast(3, HIGH);       
    }
 
    line++;

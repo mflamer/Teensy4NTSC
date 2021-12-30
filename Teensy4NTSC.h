@@ -1,9 +1,7 @@
 #include <IntervalTimer.h>
 #include <DMAChannel.h>
 
-// NTSC horiz sync timing
-#define H_SYNC 4.7
-#define H_BACK 10
+
 // NTSC vert 
 #define V_TOTAL_LINES 262
 #define V_START 8
@@ -19,9 +17,9 @@ public:
 	Teensy4NTSC(){}
 
 	// Create object setting signal output pin selections
-	// pinBlack = any digital pin
-	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
-	Teensy4NTSC(byte pinBlack, byte pinWhite);
+	// pinSync = any digital pin
+	// pinPixels = 6|7|8|9|10|11|12|13|35|36|37|39
+	Teensy4NTSC(byte pinSync, byte pinPixels);
 
 	// Clear screen with optional bit pattern
 	void	clear(int v = 0);
@@ -41,7 +39,7 @@ public:
 
 
 private:
-	static int buffer[V_RES][H_WORDS];
+	static int buffer[V_TOTAL_LINES][H_WORDS];
 	static IntervalTimer timer;
 	static DMAChannel dma;
 

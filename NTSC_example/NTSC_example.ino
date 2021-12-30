@@ -10,7 +10,7 @@ void setup() {
 	// Create object setting signal output pin selections
 	// pinBlack = any digital pin
 	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
-   	ntsc = Teensy4NTSC(3, 7);   
+   	ntsc = Teensy4NTSC(6, 7);   
    	ntsc.clear(0x80000000);
    	   
    	ntsc.line(128, 108, 255, 215);
