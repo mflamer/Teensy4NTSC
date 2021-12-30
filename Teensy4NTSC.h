@@ -4,10 +4,10 @@
 #define H_SYNC 4.7
 #define H_BACK 10
 // NTSC vert 
-#define V_TOTAL_LINES 257
-#define V_RES 224
-#define V_SYNC 237
-#define H_RES 256 
+#define V_TOTAL_LINES 260
+#define V_RES 240
+#define V_SYNC 252
+#define H_RES 257 
 #define H_WORDS 8
 
 typedef unsigned char byte;
