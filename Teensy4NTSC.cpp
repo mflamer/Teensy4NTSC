@@ -16,7 +16,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * V_RES);
+   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * (V_RES));
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -77,10 +77,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
     FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
 	FLEXIO2_TIMCFG0 = 0x00002600;
 	FLEXIO2_TIMCTL0 = 0x0A400501;
-	// FLEXIO2_TIMCMP1 = 0x0014; // load 10 words
-	// FLEXIO2_TIMCFG1 = 0x00142400;
-	// FLEXIO2_TIMCTL1 = 0x01C00503;
-   	// H Sync Timer
+	// H Sync Timer
    	FLEXIO2_TIMCMP2 = 0xFF18; // low|high 0x18FF
    	FLEXIO2_TIMCFG2 = 0x00100000;
    	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  	
@@ -93,25 +90,21 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
    	// V Sync signal
-   	FLEXIO2_TIMCMP5 = 0x07FB; // low|high   	
+   	FLEXIO2_TIMCMP5 = 0x1EFF; // low|high   	
    	FLEXIO2_TIMCFG5 = 0x00100000;
    	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
    	// V Sync active lines
-   	FLEXIO2_TIMCMP6 = 0x13EF; // low|high   	
+   	FLEXIO2_TIMCMP6 = 0x2EEF; // low|high   	
    	FLEXIO2_TIMCFG6 = 0x00100000;
    	FLEXIO2_TIMCTL6 = 0x1F430202;
    	// line timer - 
    	FLEXIO2_TIMCMP7 = 0x0001; // low|high   0x15FF	
-   	FLEXIO2_TIMCFG7 = 0x00100000;
+   	FLEXIO2_TIMCFG7 = 0x01100000;
    	FLEXIO2_TIMCTL7 = 0x13400003;
    	// // Shifter as pixel enable logic (shifter 1 pins = 1,2,3,4) 5 out
    	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
    	FLEXIO2_SHIFTCTL1 = 0x00030507;
-   	FLEXIO2_SHIFTBUF1 = 0x00000008;
-   	// // Shifter as pixel enable logic (shifter 2 pins = 2,3,4,5) 6 out
-   	// FLEXIO2_SHIFTCFG2 = 0x00000030; // mask pins 4 & 5
-   	// FLEXIO2_SHIFTCTL2 = 0x00030007; // 
-   	// FLEXIO2_SHIFTBUF2 = 0x00000004;
+   	FLEXIO2_SHIFTBUF1 = 0x00000008;   	
    	// Shifter DMA
    	FLEXIO2_SHIFTSDEN |= 1;
    	
@@ -143,13 +136,22 @@ void Teensy4NTSC::clear(int v){
    	}
 }
 
+void Teensy4NTSC::dump_buffer(){
+	for (int j = 0; j < V_RES; j++) {
+      	for (int i = 0; i < H_WORDS; i++) {
+           	Serial.print(buffer[j][i]);
+      	}
+      	Serial.print('\n');
+   	}
+}
+
 
 
 void Teensy4NTSC::pixel(int x, int y, bool clear){
    x = clampH(x); 
    y = clampV(y);
    int p = 0x80000000 >> (x & 0x1F);
-   byte _y = (V_RES - 1) - y; // set origin at bottom left
+   int _y = (V_RES - 1) - y; // set origin at bottom left
    if(clear) buffer[_y][x >> 5] &= (~p);
    else buffer[_y][x >> 5] |= p;
 }
