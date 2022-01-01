@@ -3,12 +3,11 @@
 
 
 // NTSC vert 
-#define V_TOTAL_LINES 262
-#define V_START 8
-#define V_RES 216
-#define V_SYNC 240
-#define H_RES 256 
-#define H_WORDS 8
+#define V_TOTAL_LINES 260
+#define V_RES 240
+#define V_SYNC 252
+#define H_RES 320 
+#define H_WORDS 10
 
 typedef unsigned char byte;
 
@@ -39,7 +38,7 @@ public:
 
 
 private:
-	static int buffer[V_TOTAL_LINES][H_WORDS];
+	static int buffer[V_RES][H_WORDS];
 	static IntervalTimer timer;
 	static DMAChannel dma;
 

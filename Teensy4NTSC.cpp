@@ -10,7 +10,7 @@
 
 IntervalTimer Teensy4NTSC::timer = IntervalTimer();
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-int Teensy4NTSC::buffer[V_TOTAL_LINES][H_WORDS] = {0}; 
+int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
 
 Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
 	// Setup black pin
@@ -23,7 +23,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, H_WORDS * 4);
+   	dma.sourceBuffer((int*)buffer, H_RES * 4);
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -77,74 +77,60 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
 
    	// Shifter to pin
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
-   	FLEXIO2_SHIFTCTL0 = 0x00020002 | (FLEXIO2PIN_PIXELS << 8);
-   	// Shift counter
-   	FLEXIO2_TIMCMP0 = 0x0000003F; // (32 * 2) - 1    
-   	FLEXIO2_TIMCFG0 = 0x00300630;
-   	FLEXIO2_TIMCTL0 = 0x07400003;
+   	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer
-   	FLEXIO2_TIMCMP1 = 0x00000009; // (PixelRateDiv / 2) - 1
-   	FLEXIO2_TIMCFG1 = 0x00006200;
-   	FLEXIO2_TIMCTL1 = 0x13400003;
+   	FLEXIO2_TIMCMP0 = 0x3F07; // (32 * 2) - 1 |     
+   	FLEXIO2_TIMCFG0 = 0x00006220;
+   	FLEXIO2_TIMCTL0 = 0x07400001; 
+   	// Pixel line counter
+	FLEXIO2_TIMCMP1 = 0x0014; // load 10 words
+	FLEXIO2_TIMCFG1 = 0x00142400;
+	FLEXIO2_TIMCTL1 = 0x01400503;
    	// H Sync Timer
-   	FLEXIO2_TIMCMP2 = 0x18FF; // low|high   0x15FF	
+   	FLEXIO2_TIMCMP2 = 0xFF18; // low|high 0x18FF
    	FLEXIO2_TIMCFG2 = 0x00100000;
-   	FLEXIO2_TIMCTL2 = 0x0F420002 | (FLEXIO2PIN_SYNC << 8);   	
-   	// Sync & Line Timer Scaler
+   	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  	
+   	// scale clk for pwm 
    	FLEXIO2_TIMCMP3 = 0x0000001A; // (H_ACTIVE / 2) - 1   	
    	FLEXIO2_TIMCFG3 = 0x00000000;
    	FLEXIO2_TIMCTL3 = 0x00000003;
-   	// Active Line Timer
-   	FLEXIO2_TIMCMP4 = 0x28EF; // low|high   	
+   	// H Active Line Timer
+   	FLEXIO2_TIMCMP4 = 0xDF38; // low|high   0x40D7	
    	FLEXIO2_TIMCFG4 = 0x00100000;
-   	FLEXIO2_TIMCTL4 = 0x0F400002;
-   	// V Sync Timer
-   	FLEXIO2_TIMCMP5 = 0x14EF; // low|high   	
+   	FLEXIO2_TIMCTL4 = 0x0F430182;
+   	// V Sync signal
+   	FLEXIO2_TIMCMP5 = 0x08FC; // low|high   	
    	FLEXIO2_TIMCFG5 = 0x00100000;
-   	FLEXIO2_TIMCTL5 = 0x13410002 | (FLEXIO2PIN_SYNC << 8);
-   	// V Pixel Timer
-   	FLEXIO2_TIMCMP6 = 0x14EF; // low|high   	
+   	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
+   	// V Sync active lines
+   	FLEXIO2_TIMCMP6 = 0x14F0; // low|high   	
    	FLEXIO2_TIMCFG6 = 0x00100000;
-   	FLEXIO2_TIMCTL6 = 0x13410002 | (FLEXIO2PIN_PIXELS << 8);
-   	// H Sync Pixel Timer
-   	// FLEXIO2_TIMCMP7 = 0x18FF; // low|high   0x15FF	
-   	// FLEXIO2_TIMCFG7 = 0x00100000;
-   	// FLEXIO2_TIMCTL7 = 0x0F410002 | (FLEXIO2PIN_PIXELS << 8);
+   	FLEXIO2_TIMCTL6 = 0x1F430202;
+   	// line timer - 
+   	FLEXIO2_TIMCMP7 = 0x0001; // low|high   0x15FF	
+   	FLEXIO2_TIMCFG7 = 0x00100000;
+   	FLEXIO2_TIMCTL7 = 0x13400003;
+   	// // Shifter as pixel enable logic (shifter 1 pins = 1,2,3,4) 5 out
+   	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
+   	FLEXIO2_SHIFTCTL1 = 0x00030507;
+   	FLEXIO2_SHIFTBUF1 = 0x00000008;
+   	// // Shifter as pixel enable logic (shifter 2 pins = 2,3,4,5) 6 out
+   	// FLEXIO2_SHIFTCFG2 = 0x00000030; // mask pins 4 & 5
+   	// FLEXIO2_SHIFTCTL2 = 0x00030007; // 
+   	// FLEXIO2_SHIFTBUF2 = 0x00000004;
    	// Shifter DMA
    	FLEXIO2_SHIFTSDEN |= 1;
    	
    	
 }
 
-void Teensy4NTSC::sendLine(){
-	static int line = 0;
-	if((line < (V_RES + V_START)) && (line >= V_START)){
-      	// digitalWriteFast(3, LOW);
-      	// delayMicroseconds(H_SYNC);
-      	// digitalWriteFast(3, HIGH);
-      	// delayMicroseconds(H_BACK);
-      	
-      	//FLEXIO2_SHIFTBUFBIS0 = buffer[line - V_START][0];      	
 
-      	//dma.sourceBuffer((int*)(&buffer[line - V_START]), H_WORDS * 4); 
-      	//FLEXIO2_SHIFTSTAT = 1;          
-   }
-   else if(line == V_SYNC){        
+// void Teensy4NTSC::sendLine(){
+//  	//dma.sourceBuffer((int*)buffer, H_WORDS * 4);
+//  	//FLEXIO2_SHIFTBUFBIS0 = 0xAAAAAAAA;
+// }
 
-      // digitalWriteFast(3, LOW); 
-      // delayMicroseconds(58.86);
-      // digitalWriteFast(3, HIGH); 
-   }
-   else{
-      // digitalWriteFast(3, LOW);
-      // delayMicroseconds(H_SYNC);
-      // digitalWriteFast(3, HIGH);       
-   }
 
-   line++;
-   if(line == V_TOTAL_LINES) line = 0;
-  
-}
 
 void Teensy4NTSC::order(int* v0, int* v1){
 	if(*v0 > *v1){

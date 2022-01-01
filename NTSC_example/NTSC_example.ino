@@ -11,7 +11,7 @@ void setup() {
 	// pinBlack = any digital pin
 	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
    	ntsc = Teensy4NTSC(6, 7);   
-   	ntsc.clear(0x80000000);
+   	ntsc.clear(0x80000001);
    	   
    	ntsc.line(128, 108, 255, 215);
    	ntsc.line(128, 108, 255, 0);
@@ -27,7 +27,7 @@ void setup() {
    	ntsc.line(128, 108, 0, 108);
    	ntsc.line(128, 108, 255, 108);
 	
-   	ntsc.rectangle(0, 0, 255, 215);
+   	ntsc.rectangle(0, 0, H_RES-1, V_RES-1);
    	ntsc.rectangle(0, 0, 20, 20, true);
    	ntsc.rectangle(5, 5, 15, 15, true, true);
    	ntsc.rectangle(255, 215, 235, 195, true);
@@ -56,17 +56,17 @@ int y = 108;
 
 void loop() {
 	
-  	delay(30);  	
-	ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
-	y += y_;
-	ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
+ //  	delay(30);  	
+	// ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
+	// y += y_;
+	// ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
 	   
-    // randomly set y delta
-    if(cnt == 10){
-		y_ = random(-1, 2);
-		cnt = 0;
-	}
-	cnt++;  
+ //    // randomly set y delta
+ //    if(cnt == 10){
+	// 	y_ = random(-1, 2);
+	// 	cnt = 0;
+	// }
+	// cnt++;  
    
 }
 
