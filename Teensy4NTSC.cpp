@@ -8,29 +8,20 @@
 #define H_ACTIVE 58.8
 #define H_BACK 10
 
-IntervalTimer Teensy4NTSC::timer = IntervalTimer();
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
 int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
 
 Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
-	// Setup black pin
-	//pinMode(pinSync, OUTPUT);
-   	//digitalWriteFast(pinSync, HIGH);  	
-
-   	//start timer to interrupt at each line  	
-   	//timer.begin(sendLine, 63.5);
-
+	
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, H_RES * 4);
+   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * V_RES);
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
    	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
    	dma.enable();
-
-
 
 	
    	// Setup FlexIO (white pin)
@@ -77,15 +68,18 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
 
    	// Shifter to pin
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
-   	FLEXIO2_SHIFTCTL0 = 0x00030002 | (FLEXIO2PIN_PIXELS << 8);
+   	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer
-   	FLEXIO2_TIMCMP0 = 0x3F07; // (32 * 2) - 1 |     
-   	FLEXIO2_TIMCFG0 = 0x00006220;
-   	FLEXIO2_TIMCTL0 = 0x07400001; 
+   	FLEXIO2_TIMCMP1 = 0x3F07; // (32 * 2) - 1 |     
+   	FLEXIO2_TIMCFG1 = 0x00001120;
+   	FLEXIO2_TIMCTL1 = 0x00000001; 
    	// Pixel line counter
-	FLEXIO2_TIMCMP1 = 0x0014; // load 10 words
-	FLEXIO2_TIMCFG1 = 0x00142400;
-	FLEXIO2_TIMCTL1 = 0x01400503;
+    FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
+	FLEXIO2_TIMCFG0 = 0x00002600;
+	FLEXIO2_TIMCTL0 = 0x0A400501;
+	// FLEXIO2_TIMCMP1 = 0x0014; // load 10 words
+	// FLEXIO2_TIMCFG1 = 0x00142400;
+	// FLEXIO2_TIMCTL1 = 0x01C00503;
    	// H Sync Timer
    	FLEXIO2_TIMCMP2 = 0xFF18; // low|high 0x18FF
    	FLEXIO2_TIMCFG2 = 0x00100000;
@@ -99,11 +93,11 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
    	// V Sync signal
-   	FLEXIO2_TIMCMP5 = 0x08FC; // low|high   	
+   	FLEXIO2_TIMCMP5 = 0x07FB; // low|high   	
    	FLEXIO2_TIMCFG5 = 0x00100000;
    	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
    	// V Sync active lines
-   	FLEXIO2_TIMCMP6 = 0x14F0; // low|high   	
+   	FLEXIO2_TIMCMP6 = 0x13EF; // low|high   	
    	FLEXIO2_TIMCFG6 = 0x00100000;
    	FLEXIO2_TIMCTL6 = 0x1F430202;
    	// line timer - 

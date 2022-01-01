@@ -39,7 +39,6 @@ public:
 
 private:
 	static int buffer[V_RES][H_WORDS];
-	static IntervalTimer timer;
 	static DMAChannel dma;
 
     static void	sendLine();
@@ -47,8 +46,8 @@ private:
     
 	#define MIN(a,b) (((a)<(b))?(a):(b))
 	#define MAX(a,b) (((a)>(b))?(a):(b))
-    int 	clampH(int v){ return MIN(255, MAX(0, v));}
-    int 	clampV(int v){ return MIN(215, MAX(0, v));}
+    int 	clampH(int v){ return MIN(320-1, MAX(0, v));}
+    int 	clampV(int v){ return MIN(V_RES-1, MAX(0, v));}
     void 	order(int* v0, int* v1);
 
     void	circleStep(int xc, int yc, int x, int y, bool fill, bool clear);
