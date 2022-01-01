@@ -3,13 +3,15 @@
 // NTSC horiz sync timing
 #define H_SYNC 4.7
 #define H_BACK 10
-#define H_DEAD 58.8
+
 // NTSC vert 
-#define V_TOTAL_LINES 260
+
 #define V_RES 240
-#define V_SYNC 252
+#define V_SYNC 256
+#define V_TOTAL_LINES 286
+
 #define H_RES 256 
-#define H_WORDS 8
+#define H_WORDS (H_RES / 32)
 
 typedef unsigned char byte;
 
@@ -48,8 +50,8 @@ private:
     
 	#define MIN(a,b) (((a)<(b))?(a):(b))
 	#define MAX(a,b) (((a)>(b))?(a):(b))
-    int 	clampH(int v){ return MIN(255, MAX(0, v));}
-    int 	clampV(int v){ return MIN(215, MAX(0, v));}
+    int 	clampH(int v){ return MIN(H_RES-1, MAX(0, v));}
+    int 	clampV(int v){ return MIN(V_RES-1, MAX(0, v));}
     void 	order(int* v0, int* v1);
 
     void	circleStep(int xc, int yc, int x, int y, bool fill, bool clear);
