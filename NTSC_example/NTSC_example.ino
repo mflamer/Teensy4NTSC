@@ -63,9 +63,9 @@ int y = 108;
 void loop() {
 	
   	delay(30);  	
-	ntsc.circle(x++ & 0xFF, y & 0xFF, 2, true, true);	
+	ntsc.circle(x++ % (H_RES-1), y % (V_RES-1), 2, true, true);	
 	y += y_;
-	ntsc.circle(x & 0xFF, y & 0xFF, 2, true); 
+	ntsc.circle(x % (H_RES-1), y % (V_RES-1), 2, true); 
 	   
     // randomly set y delta
     if(cnt == 10){
