@@ -12,33 +12,33 @@ Teensy4NTSC ntsc;
 //    	ntsc = Teensy4NTSC(6, 7);   
 //    	ntsc.clear();
 
-// //     ntsc.line(H_RES/2, V_RES/2, H_RES-1, 0);
-// //    	ntsc.line(H_RES/2, V_RES/2, 0, V_RES-1);
-// //    	ntsc.line(H_RES/2, V_RES/2, 0, 0);
-// //    	ntsc.line(H_RES/2, V_RES/2, 200, V_RES-1);
-// //    	ntsc.line(H_RES/2, V_RES/2, 200, 0);
-// //    	ntsc.line(H_RES/2, V_RES/2, 120, V_RES-1);
-// //    	ntsc.line(H_RES/2, V_RES/2, 120, 0);
+//     ntsc.line(H_RES/2, V_RES/2, H_RES-1, 0);
+//    	ntsc.line(H_RES/2, V_RES/2, 0, V_RES-1);
+//    	ntsc.line(H_RES/2, V_RES/2, 0, 0);
+//    	ntsc.line(H_RES/2, V_RES/2, 200, V_RES-1);
+//    	ntsc.line(H_RES/2, V_RES/2, 200, 0);
+//    	ntsc.line(H_RES/2, V_RES/2, 120, V_RES-1);
+//    	ntsc.line(H_RES/2, V_RES/2, 120, 0);
 	
-// //    	ntsc.line(H_RES/2, 0, H_RES/2, V_RES-1);
-// //    	ntsc.line(0, V_RES/2, H_RES-1, V_RES/2);
-// //    	ntsc.line(0, 0, H_RES-1, V_RES-1);
-// //    	ntsc.line(0, V_RES-1, H_RES-1, 0);
+//    	ntsc.line(H_RES/2, 0, H_RES/2, V_RES-1);
+//    	ntsc.line(0, V_RES/2, H_RES-1, V_RES/2);
+//    	ntsc.line(0, 0, H_RES-1, V_RES-1);
+//    	ntsc.line(0, V_RES-1, H_RES-1, 0);
 
-// //    	ntsc.rectangle(0, 0, H_RES-1, V_RES-1);
+//    	ntsc.rectangle(0, 0, H_RES-1, V_RES-1);
 
-// //    	ntsc.rectangle(0, 0, 20, 20, true);
-// //    	ntsc.rectangle(5, 5, 15, 15, true, BLACK);
+//    	ntsc.rectangle(0, 0, 20, 20, true);
+//    	ntsc.rectangle(5, 5, 15, 15, true, BLACK);
    
-// //    	ntsc.rectangle(H_RES-1, V_RES-1, H_RES-21, V_RES-21, true);
-// //    	ntsc.rectangle(H_RES-6, V_RES-6, H_RES-16, V_RES-16, true, BLACK);	
+//    	ntsc.rectangle(H_RES-1, V_RES-1, H_RES-21, V_RES-21, true);
+//    	ntsc.rectangle(H_RES-6, V_RES-6, H_RES-16, V_RES-16, true, BLACK);	
    	
-// //    	ntsc.circle(H_RES/2, V_RES/2, 20, true);
-// //    	ntsc.circle(H_RES/2, V_RES/2, 10, true, BLACK);
-// //    	ntsc.circle(H_RES/2, V_RES/2, 25);
+//    	ntsc.circle(H_RES/2, V_RES/2, 20, true);
+//    	ntsc.circle(H_RES/2, V_RES/2, 10, true, BLACK);
+//    	ntsc.circle(H_RES/2, V_RES/2, 25);
 
-// //    	ntsc.text("Hello World! \x1 \x12", 4, 180);
-// //    	ntsc.text("This NTSC from RAM -> DMA -> FlexIO", 4, 50, BLACK);
+//    	ntsc.text("Hello World! \x1 \x12", 4, 180);
+//    	ntsc.text("This NTSC from RAM -> DMA -> FlexIO", 4, 50, BLACK);
 
    	
 // }
@@ -69,16 +69,16 @@ Teensy4NTSC ntsc;
 // // 	cnt++;  
 
 // // fizz demo
-// while (1)
-// {
-// 	int x = random(H_RES);
-// 	int y = random(V_RES);
-// 	int r = random(25);
-// 	bool fill = random(0, 2); 
-// 	bool color = random(0, 2);
-// 	delay(10);
-//     ntsc.circle(x, y, r, fill, color);
-// }
+// // while (1)
+// // {
+// // 	int x = random(H_RES);
+// // 	int y = random(V_RES);
+// // 	int r = random(25);
+// // 	bool fill = random(0, 2); 
+// // 	bool color = random(0, 2);
+// // 	delay(10);
+// //     ntsc.circle(x, y, r, fill, color);
+// // }
   
 
 // }
@@ -87,9 +87,6 @@ Teensy4NTSC ntsc;
 ///////////////////////////////////////////////////////////////////////////////
 //Port of Conway's Game of Life to Mark Flamer's FlexIO NTSC for Teensy 4
 //G. Kovacs, 12/26/21
-
-
-//NTSC x=256, y=215 pixels (maybe 219 - need to check for sure)
 
 int xmax=H_RES-1;
 int ymax=V_RES-1;
