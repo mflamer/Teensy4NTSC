@@ -8,7 +8,7 @@ Teensy4NTSC ntsc;
 // void setup() {
 
 // 	// Create object setting signal output pin selections
-// 	// pinBlack = any digital pin
+// 	// pinBlack = 6|7|8|9|10|11|12|13|35|36|37|39
 // 	// pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
 //    	ntsc = Teensy4NTSC(6, 7);   
 //    	ntsc.clear();
@@ -108,7 +108,7 @@ long density = 12;
 
 void setup() {
   // Create object setting signal output pin selections
-  // pinBlack = any digital pin6
+  // pinBlack = 6|7|8|9|10|11|12|13|35|36|37|39
   // pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
     ntsc = Teensy4NTSC(6, 7);  
     ntsc.clear();

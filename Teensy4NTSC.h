@@ -14,7 +14,7 @@ public:
 	Teensy4NTSC(){}
 
 	// Create object setting signal output pin selections
-	// pinSync = any digital pin
+	// pinSync =   6|7|8|9|10|11|12|13|35|36|37|39
 	// pinPixels = 6|7|8|9|10|11|12|13|35|36|37|39
 	Teensy4NTSC(byte pinSync, byte pinPixels);
 
