@@ -127,7 +127,8 @@ void Teensy4NTSC::order(int* v0, int* v1){
 }
 
 
-void Teensy4NTSC::clear(int v){
+void Teensy4NTSC::clear(bool color){
+	int v = color ? 0xFFFFFFFF : 0x00000000;
 	for (int j = 0; j < V_RES; j++) {
       	for (int i = 0; i < H_WORDS; i++) {
            	buffer[j][i] = v;
@@ -146,17 +147,17 @@ void Teensy4NTSC::dump_buffer(){
 
 
 
-void Teensy4NTSC::pixel(int x, int y, bool clear){
+void Teensy4NTSC::pixel(int x, int y, bool color){
    x = clampH(x); 
    y = clampV(y);
    int p = 0x80000000 >> (x & 0x1F);
    int _y = (V_RES - 1) - y; // set origin at bottom left
-   if(clear) buffer[_y][x >> 5] &= (~p);
+   if(color == BLACK) buffer[_y][x >> 5] &= (~p);
    else buffer[_y][x >> 5] |= p;
 }
 
 
-void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool clear)
+void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool color)
 {
     int dx =  abs(x1-x0);
     int sx = x0<x1 ? 1 : -1;
@@ -164,7 +165,7 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool clear)
     int sy = y0<y1 ? 1 : -1;
     int err = dx+dy;  /* error value e_xy */
     while (true){  /* loop */
-        pixel(x0, y0, clear);
+        pixel(x0, y0, color);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy){/* e_xy+e_x > 0 */
@@ -179,55 +180,55 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool clear)
 }
 
 
-void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, bool clear){
+void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, bool color){
 
 	if(fill){
 		order(&y0, &y1);
 		while(y0 <= y1){
-			line(x0, y0, x1, y0, clear);
+			line(x0, y0, x1, y0, color);
 			y0++; 
 		}
 	}
 	else{
-		line(x0, y0, x0, y1, clear);
-		line(x0, y1, x1, y1, clear);
-		line(x1, y1, x1, y0, clear);
-		line(x0, y0, x1, y0, clear);
+		line(x0, y0, x0, y1, color);
+		line(x0, y1, x1, y1, color);
+		line(x1, y1, x1, y0, color);
+		line(x0, y0, x1, y0, color);
 	}
 	
 }
 
 
-void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, bool clear)
+void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, bool color)
 {
 	if(fill){
-		line(xc+x, yc+y, xc-x, yc+y, clear);
-		line(xc-x, yc+y, xc+x, yc+y, clear);
-	    line(xc+x, yc-y, xc-x, yc-y, clear);
-	    line(xc-x, yc-y, xc+x, yc-y, clear);
-	    line(xc+y, yc+x, xc-y, yc+x, clear);
-	    line(xc-y, yc+x, xc+y, yc+x, clear);
-	    line(xc+y, yc-x, xc-y, yc-x, clear);
-	    line(xc-y, yc-x, xc+y, yc-x, clear);
+		line(xc+x, yc+y, xc-x, yc+y, color);
+		line(xc-x, yc+y, xc+x, yc+y, color);
+	    line(xc+x, yc-y, xc-x, yc-y, color);
+	    line(xc-x, yc-y, xc+x, yc-y, color);
+	    line(xc+y, yc+x, xc-y, yc+x, color);
+	    line(xc-y, yc+x, xc+y, yc+x, color);
+	    line(xc+y, yc-x, xc-y, yc-x, color);
+	    line(xc-y, yc-x, xc+y, yc-x, color);
 	}
 	else{
-	    pixel(xc+x, yc+y, clear);
-	    pixel(xc-x, yc+y, clear);
-	    pixel(xc+x, yc-y, clear);
-	    pixel(xc-x, yc-y, clear);
-	    pixel(xc+y, yc+x, clear);
-	    pixel(xc-y, yc+x, clear);
-	    pixel(xc+y, yc-x, clear);
-	    pixel(xc-y, yc-x, clear);
+	    pixel(xc+x, yc+y, color);
+	    pixel(xc-x, yc+y, color);
+	    pixel(xc+x, yc-y, color);
+	    pixel(xc-x, yc-y, color);
+	    pixel(xc+y, yc+x, color);
+	    pixel(xc-y, yc+x, color);
+	    pixel(xc+y, yc-x, color);
+	    pixel(xc-y, yc-x, color);
 	}
 }
  
 
-void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool clear)
+void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool color)
 {
     int x = 0, y = r;
     int d = 3 - 2 * r;
-    circleStep(xc, yc, x, y, fill, clear);
+    circleStep(xc, yc, x, y, fill, color);
     while (y >= x++)
     {
         if (d > 0)
@@ -237,7 +238,7 @@ void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool clear)
         }
         else
             d = d + 4 * x + 6;
-        circleStep(xc, yc, x, y, fill, clear);
+        circleStep(xc, yc, x, y, fill, color);
     }
 }
 
