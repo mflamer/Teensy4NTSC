@@ -3,7 +3,7 @@
 #include <imxrt.h>
 #include "font8x12.h"
 
-// NTSC horiz sync timing
+// NTSC horiz sync timing (for reference, not used in code anymore)
 #define H_SYNC 4.7
 #define H_ACTIVE 58.8
 #define H_BACK 10
@@ -16,7 +16,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * (V_RES));
+   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * V_RES);
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -24,7 +24,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	dma.enable();
 
 	
-   	// Setup FlexIO (white pin)
+   	// Setup FlexIO
    	// Fast FlexIO CLK  
    	CCM_CS1CDR &= ~( CCM_CS1CDR_FLEXIO2_CLK_PODF( 7 ) );
    	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 );
@@ -32,7 +32,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Enable FlexIO module
    	FLEXIO2_CTRL |= 1;   
-   	// Pad MUX 
+   	// Pad MUX for 2 pins
    	int FLEXIO2PIN_SYNC = 0; 	
    	switch(pinSync){
    		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_SYNC = 10;break;	
@@ -66,56 +66,55 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	}
 
 
-   	// Shifter to pin
+   	// Shifter for serial pixels out from DMA in 332b chunks   
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
-   	// Pixel timer
+   	// Pixel timer - controls the pixel timing and count for Shifter0
    	FLEXIO2_TIMCMP1 = 0x3F07; // (32 * 2) - 1 |     
    	FLEXIO2_TIMCFG1 = 0x00001120;
    	FLEXIO2_TIMCTL1 = 0x00000001; 
-   	// Pixel line counter
+   	// Pixel line counter - controls the number of 32b words sent per line
+   	// enabled by AND gate below (shifter 1)
     FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
 	FLEXIO2_TIMCFG0 = 0x00002600;
-	FLEXIO2_TIMCTL0 = 0x0A400501;
-	// H Sync Timer
-   	FLEXIO2_TIMCMP2 = 0xFF18; // low|high 0x18FF
-   	FLEXIO2_TIMCFG2 = 0x00100000;
-   	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  	
-   	// scale clk for pwm 
+	FLEXIO2_TIMCTL0 = 0x0A400501;		
+   	// Scale CLK for H line PWMs (next 2 timers 2 & 4)  
    	FLEXIO2_TIMCMP3 = 0x0000001A; // (H_ACTIVE / 2) - 1   	
    	FLEXIO2_TIMCFG3 = 0x00000000;
    	FLEXIO2_TIMCTL3 = 0x00000003;
-   	// H Active Line Timer
-   	FLEXIO2_TIMCMP4 = 0xDF38; // low|high   0x40D7	
+   	// H Sync Timer - Drives the H_Sync signal pin (PWM)
+   	FLEXIO2_TIMCMP2 = 0xFF18; // high|low 
+   	FLEXIO2_TIMCFG2 = 0x00100000;
+   	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  
+   	// H Active Line Timer = sets the delay to start pixels from H sync (PWM)
+   	FLEXIO2_TIMCMP4 = 0xDF38; // high|low   
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
-   	// V Sync signal
-   	FLEXIO2_TIMCMP5 = 0x1EFF; // low|high   	
-   	FLEXIO2_TIMCFG5 = 0x00100000;
-   	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
-   	// V Sync active lines
-   	FLEXIO2_TIMCMP6 = 0x2EEF; // low|high   	
-   	FLEXIO2_TIMCFG6 = 0x00100000;
-   	FLEXIO2_TIMCTL6 = 0x1F430202;
-   	// line timer - 
+   	// Scale H Active edges for line count used in next 2 PWMs  
    	FLEXIO2_TIMCMP7 = 0x0001; // low|high   0x15FF	
    	FLEXIO2_TIMCFG7 = 0x01100000;
    	FLEXIO2_TIMCTL7 = 0x13400003;
-   	// // Shifter as pixel enable logic (shifter 1 pins = 1,2,3,4) 5 out
+   	// V Sync signal - Drives the V Sync signal pin
+   	FLEXIO2_TIMCMP5 = 0x1EFF; // low|high   	
+   	FLEXIO2_TIMCFG5 = 0x00100000;
+   	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
+   	// V Sync active lines - disables pixels during V Sync
+   	FLEXIO2_TIMCMP6 = 0x2EEF; // low|high   	
+   	FLEXIO2_TIMCFG6 = 0x00100000;
+   	FLEXIO2_TIMCTL6 = 0x1F430202;
+   	
+   	// // Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
    	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
    	FLEXIO2_SHIFTCTL1 = 0x00030507;
    	FLEXIO2_SHIFTBUF1 = 0x00000008;   	
-   	// Shifter DMA
-   	FLEXIO2_SHIFTSDEN |= 1;
-   	
+   	// Enable Shifter0 DMA signal
+   	FLEXIO2_SHIFTSDEN |= 1;   	
    	
 }
 
 
-// void Teensy4NTSC::sendLine(){
-//  	//dma.sourceBuffer((int*)buffer, H_WORDS * 4);
-//  	//FLEXIO2_SHIFTBUFBIS0 = 0xAAAAAAAA;
-// }
+
+
 
 
 
