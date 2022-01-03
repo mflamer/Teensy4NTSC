@@ -36,7 +36,7 @@ public:
 	// Draw a single character at a specified coordinate.
 	void	character(int c, int x, int y, bool color = WHITE);
 	// Draw a single string of characters at a specified coordinate.
-	void	text(char* s, int x, int y, bool color = WHITE);
+	void	text(const char* s, int x, int y, bool color = WHITE);
 
 
 	// Dump the buffer to serial for debugging
