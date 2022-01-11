@@ -66,7 +66,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	}
 
 
-   	// Shifter for serial pixels out from DMA in 332b chunks   
+   	// Shifter for serial pixels out from DMA in 32b chunks   
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer - controls the pixel timing and count for Shifter0
