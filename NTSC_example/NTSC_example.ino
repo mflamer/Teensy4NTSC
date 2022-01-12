@@ -7,45 +7,45 @@ Teensy4NTSC ntsc;
 
 // void setup() {
 
-// 	// Create object and set pin selections
+// 	// Create NTSC display system and set pin selections
+// 	// Teensy4NTSC(byte pinSync, byte pinPixels, int v_res = 256);
 // 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
-//    	ntsc = Teensy4NTSC(6, 7);   
+// 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
+
+//    	ntsc = Teensy4NTSC(6, 7, 216);   
 //    	ntsc.clear();
 
-//     ntsc.line(H_RES/2, V_RES/2, H_RES-1, 0);
-//    	ntsc.line(H_RES/2, V_RES/2, 0, V_RES-1);
-//    	ntsc.line(H_RES/2, V_RES/2, 0, 0);
-//    	ntsc.line(H_RES/2, V_RES/2, 200, V_RES-1);
-//    	ntsc.line(H_RES/2, V_RES/2, 200, 0);
-//    	ntsc.line(H_RES/2, V_RES/2, 120, V_RES-1);
-//    	ntsc.line(H_RES/2, V_RES/2, 120, 0);
+//     ntsc.line(ntsc.h_res/2, ntsc.v_res/2, ntsc.h_res-1, 0);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 0, ntsc.v_res-1);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 0, 0);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 200, ntsc.v_res-1);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 200, 0);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 120, ntsc.v_res-1);
+//    	ntsc.line(ntsc.h_res/2, ntsc.v_res/2, 120, 0);
 	
-//    	ntsc.line(H_RES/2, 0, H_RES/2, V_RES-1);
-//    	ntsc.line(0, V_RES/2, H_RES-1, V_RES/2);
-//    	ntsc.line(0, 0, H_RES-1, V_RES-1);
-//    	ntsc.line(0, V_RES-1, H_RES-1, 0);
+//    	ntsc.line(ntsc.h_res/2, 0, ntsc.h_res/2, ntsc.v_res-1);
+//    	ntsc.line(0, ntsc.v_res/2, ntsc.h_res-1, ntsc.v_res/2);
+//    	ntsc.line(0, 0, ntsc.h_res-1, ntsc.v_res-1);
+//    	ntsc.line(0, ntsc.v_res-1, ntsc.h_res-1, 0);
 
-//    	ntsc.rectangle(0, 0, H_RES-1, V_RES-1);
+//    	ntsc.rectangle(0, 0, ntsc.h_res-1, ntsc.v_res-1);
+//    	ntsc.rectangle(0, 18, ntsc.h_res-1, ntsc.v_res-19);
 
 //    	ntsc.rectangle(0, 0, 20, 20, true);
 //    	ntsc.rectangle(5, 5, 15, 15, true, BLACK);
    
-//    	ntsc.rectangle(H_RES-1, V_RES-1, H_RES-21, V_RES-21, true);
-//    	ntsc.rectangle(H_RES-6, V_RES-6, H_RES-16, V_RES-16, true, BLACK);	
+//    	ntsc.rectangle(ntsc.h_res-1, ntsc.v_res-1, ntsc.h_res-21, ntsc.v_res-21, true);
+//    	ntsc.rectangle(ntsc.h_res-6, ntsc.v_res-6, ntsc.h_res-16, ntsc.v_res-16, true, BLACK);	
    	
-//    	ntsc.circle(H_RES/2, V_RES/2, 20, true);
-//    	ntsc.circle(H_RES/2, V_RES/2, 10, true, BLACK);
-//    	ntsc.circle(H_RES/2, V_RES/2, 25);
+//    	ntsc.circle(ntsc.h_res/2, ntsc.v_res/2, 20, true);
+//    	ntsc.circle(ntsc.h_res/2, ntsc.v_res/2, 10, true, BLACK);
+//    	ntsc.circle(ntsc.h_res/2, ntsc.v_res/2, 25);
 
 //    	ntsc.text("Hello World! \x1 \x12", 4, 180);
-//    	ntsc.text("This NTSC from RAM -> DMA -> FlexIO", 4, 50, BLACK);
+//    	ntsc.text("This is NTSC from RAM -> DMA -> FlexIO", 4, 50, BLACK);
 
    	
 // }
-
-
-
-
 
 
 // int cnt = 0;
@@ -56,23 +56,23 @@ Teensy4NTSC ntsc;
 
 // void loop() {
 	
-// //   	delay(30);  	
-// // 	ntsc.circle(x++ % (H_RES-1), y % (V_RES-1), 2, true, BLACK);	
-// // 	y += y_;
-// // 	ntsc.circle(x % (H_RES-1), y % (V_RES-1), 2, true, WHITE); 
+//   	delay(30);  	
+// 	ntsc.circle(x++ % (ntsc.h_res-1), y % (ntsc.v_res-1), 2, true, BLACK);	
+// 	y += y_;
+// 	ntsc.circle(x % (ntsc.h_res-1), y % (ntsc.v_res-1), 2, true, WHITE); 
 	   
-// //     // randomly set y delta
-// //     if(cnt == 10){
-// // 		y_ = random(-1, 2);
-// // 		cnt = 0;
-// // 	}
-// // 	cnt++;  
+//     // randomly set y delta
+//     if(cnt == 10){
+// 		y_ = random(-1, 2);
+// 		cnt = 0;
+// 	}
+// 	cnt++;  
 
-// // fizz demo
+// // //fizz demo
 // // while (1)
 // // {
-// // 	int x = random(H_RES);
-// // 	int y = random(V_RES);
+// // 	int x = random(ntsc.h_res);
+// // 	int y = random(ntsc.v_res);
 // // 	int r = random(25);
 // // 	bool fill = random(0, 2); 
 // // 	bool color = random(0, 2);
@@ -88,8 +88,11 @@ Teensy4NTSC ntsc;
 //Port of Conway's Game of Life to Mark Flamer's FlexIO NTSC for Teensy 4
 //G. Kovacs, 12/26/21
 
-int xmax=H_RES-1;
-int ymax=V_RES-1;
+static const int H_RES = 320;
+static const int V_RES = 216;
+
+int xmax=ntsc.h_res-1;
+int ymax=ntsc.v_res-1;
 int generation = 0;
 int maxgen = 2000; //number of generations before reseeding randomly
 int neighbors(int x, int y);
@@ -98,10 +101,11 @@ byte world[H_RES][V_RES][2];
 long density = 12;
 
 void setup() {
-  // Create object setting signal output pin selections
-  // pinBlack = 6|7|8|9|10|11|12|13|35|36|37|39
-  // pinWhite = 6|7|8|9|10|11|12|13|35|36|37|39
-    ntsc = Teensy4NTSC(6, 7);  
+// Create NTSC display system and set pin selections
+// Teensy4NTSC(byte pinSync, byte pinPixels, int v_res = 256);
+// pins =  6|7|8|9|10|11|12|13|35|36|37|39
+// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
+    ntsc = Teensy4NTSC(6, 7, V_RES);  
     ntsc.clear();
 }
 

@@ -1,10 +1,5 @@
 #include <DMAChannel.h>
 
-
-// Resolution constants
-#define V_RES 240
-#define H_RES 320 
-#define H_WORDS (H_RES / 32)
 // Color constants
 #define BLACK false
 #define WHITE true
@@ -17,7 +12,8 @@ public:
 
 	// Create object and set pin selections
 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
-	Teensy4NTSC(byte pinSync, byte pinPixels);
+	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
+	Teensy4NTSC(byte pinSync, byte pinPixels, int v_res = 256);
 
 	// Clear screen to a color
 	void	clear(bool color = BLACK);
@@ -42,16 +38,21 @@ public:
 	// Dump the buffer to serial for debugging
 	void	dump_buffer();
 
-
+	static int v_res;
+	static const int h_res = 320;
+	
 
 private:
-	static int buffer[V_RES][H_WORDS];
-	static DMAChannel dma;
+	// constant parameters
+	static const int v_active_lines = 256;
+	static const int v_blank_lines = 12;
+
+	static int buffer[v_active_lines + v_blank_lines][10];
+	static DMAChannel dma;	
     
-	#define MIN(a,b) (((a)<(b))?(a):(b))
-	#define MAX(a,b) (((a)>(b))?(a):(b))
-    int 	clampH(int v){ return MIN(H_RES-1, MAX(0, v));}
-    int 	clampV(int v){ return MIN(V_RES-1, MAX(0, v));}
+	
+    int 	clampH(int v);
+    int 	clampV(int v);
     void 	order(int* v0, int* v1);
 
     void	circleStep(int xc, int yc, int x, int y, bool fill, bool clear);

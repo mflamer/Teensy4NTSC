@@ -4,19 +4,26 @@
 #include "font8x12.h"
 
 // NTSC horiz sync timing (for reference, not used in code anymore)
-#define H_SYNC 4.7
-#define H_ACTIVE 58.8
-#define H_BACK 10
+// H_SYNC 4.7
+// H_ACTIVE 58.8
+// H_BACK 10
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-int Teensy4NTSC::buffer[V_RES][H_WORDS] = {0}; 
+int Teensy4NTSC::buffer[v_active_lines + v_blank_lines][10] = {0}; 
+int Teensy4NTSC::v_res = 256;
 
-Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
+Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
 	
+	 this->v_res = MAX(0, MIN(v_res, v_active_lines));  	
+
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, H_WORDS * 4 * V_RES);
+   	dma.sourceBuffer((int*)buffer, 10 * 4 * (v_active_lines + v_blank_lines));
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -66,6 +73,9 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	}
 
 
+   	//--------------------------------------------------------------------------------
+   	// Pixels
+   	//--------------------------------------------------------------------------------
    	// Shifter for serial pixels out from DMA in 32b chunks   
    	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
@@ -73,6 +83,9 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	FLEXIO2_TIMCMP1 = 0x3F07; // (32 * 2) - 1 |     
    	FLEXIO2_TIMCFG1 = 0x00001120;
    	FLEXIO2_TIMCTL1 = 0x00000001; 
+   	//--------------------------------------------------------------------------------
+   	// H_Sync
+   	//--------------------------------------------------------------------------------
    	// Pixel line counter - controls the number of 32b words sent per line
    	// enabled by AND gate below (shifter 1)
     FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
@@ -87,21 +100,24 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
    	FLEXIO2_TIMCFG2 = 0x00100000;
    	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  
    	// H Active Line Timer = sets the delay to start pixels from H sync (PWM)
-   	FLEXIO2_TIMCMP4 = 0xDA3D; // high|low   
+   	FLEXIO2_TIMCMP4 = 0xD740; // high|low   
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
+   	//--------------------------------------------------------------------------------
+   	// V_Sync
+   	//--------------------------------------------------------------------------------
    	// Scale H Active edges for line count used in next 2 PWMs  
-   	FLEXIO2_TIMCMP7 = 0x0001; // low|high   0x15FF	
+   	FLEXIO2_TIMCMP7 = 0x0003; // divider
    	FLEXIO2_TIMCFG7 = 0x01100000;
    	FLEXIO2_TIMCTL7 = 0x13400003;
    	// V Sync signal - Drives the V Sync signal pin
-   	FLEXIO2_TIMCMP5 = 0x1EFF; // low|high   	
+   	FLEXIO2_TIMCMP5 = 0x9300; //0x8D01; // high|low    	
    	FLEXIO2_TIMCFG5 = 0x00100000;
-   	FLEXIO2_TIMCTL5 = 0x1F410002 | (FLEXIO2PIN_SYNC << 8);
+   	FLEXIO2_TIMCTL5 = 0x1F410082 | (FLEXIO2PIN_SYNC << 8);
    	// V Sync active lines - disables pixels during V Sync
-   	FLEXIO2_TIMCMP6 = 0x2EEF; // low|high   	
+   	FLEXIO2_TIMCMP6 = 0x850E; //0x7717; // high|low    	
    	FLEXIO2_TIMCFG6 = 0x00100000;
-   	FLEXIO2_TIMCTL6 = 0x1F430202;
+   	FLEXIO2_TIMCTL6 = 0x1F430282;
    	
    	// // Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
    	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
@@ -114,9 +130,16 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels){
 
 
 
-
-
-
+int Teensy4NTSC::clampH(int v){ 
+	return MIN(h_res-1, MAX(0, v));
+}
+    
+int Teensy4NTSC::clampV(int v){ 
+	int floor_y = (v_active_lines - v_res) >> 1;
+	int ceil_y = floor_y + v_res;
+	v += floor_y; 
+	return MIN(ceil_y, MAX(floor_y, v));
+}
 
 void Teensy4NTSC::order(int* v0, int* v1){
 	if(*v0 > *v1){
@@ -129,16 +152,16 @@ void Teensy4NTSC::order(int* v0, int* v1){
 
 void Teensy4NTSC::clear(bool color){
 	int v = color ? 0xFFFFFFFF : 0x00000000;
-	for (int j = 0; j < V_RES; j++) {
-      	for (int i = 0; i < H_WORDS; i++) {
+	for (int j = 0; j < v_res; j++) {
+      	for (int i = 0; i < 10; i++) {
            	buffer[j][i] = v;
       	}
    	}
 }
 
 void Teensy4NTSC::dump_buffer(){
-	for (int j = 0; j < V_RES; j++) {
-      	for (int i = 0; i < H_WORDS; i++) {
+	for (int j = 0; j < v_res; j++) {
+      	for (int i = 0; i < 10; i++) {
            	Serial.print(buffer[j][i]);
       	}
       	Serial.print('\n');
@@ -151,7 +174,7 @@ void Teensy4NTSC::pixel(int x, int y, bool color){
    x = clampH(x); 
    y = clampV(y);
    int p = 0x80000000 >> (x & 0x1F);
-   int _y = (V_RES - 1) - y; // set origin at bottom left
+   int _y = (v_active_lines - 1) - y; // set origin at bottom left
    if(color == BLACK) buffer[_y][x >> 5] &= (~p);
    else buffer[_y][x >> 5] |= p;
 }
@@ -261,4 +284,6 @@ void Teensy4NTSC::text(const char* s, int x, int y, bool invert){
 		x += 8;
 	}
 }
+
+
 
