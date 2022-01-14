@@ -152,7 +152,9 @@ void Teensy4NTSC::order(int* v0, int* v1){
 
 void Teensy4NTSC::clear(bool color){
 	int v = color ? 0xFFFFFFFF : 0x00000000;
-	for (int j = 0; j < v_res; j++) {
+	int floor_y = (v_active_lines - v_res) >> 1;
+	int ceil_y = floor_y + v_res;
+	for (int j = floor_y; j <= ceil_y; j++) {
       	for (int i = 0; i < 10; i++) {
            	buffer[j][i] = v;
       	}
