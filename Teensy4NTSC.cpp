@@ -100,7 +100,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	FLEXIO2_TIMCFG2 = 0x00100000;
    	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  
    	// H Active Line Timer = sets the delay to start pixels from H sync (PWM)
-   	FLEXIO2_TIMCMP4 = 0xD03F; // high|low   
+   	FLEXIO2_TIMCMP4 = 0xD23D; // high|low   
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
    	//--------------------------------------------------------------------------------
