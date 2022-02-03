@@ -92,15 +92,15 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
 	FLEXIO2_TIMCFG0 = 0x00002600;
 	FLEXIO2_TIMCTL0 = 0x0A400501;		
    	// Scale CLK for H line PWMs (next 2 timers 2 & 4)  
-   	FLEXIO2_TIMCMP3 = 0x0000001A; // (H_ACTIVE / 2) - 1   	
+   	FLEXIO2_TIMCMP3 = 0x0000001B; // (H_ACTIVE / 2) - 1   	
    	FLEXIO2_TIMCFG3 = 0x00000000;
    	FLEXIO2_TIMCTL3 = 0x00000003;
    	// H Sync Timer - Drives the H_Sync signal pin (PWM)
-   	FLEXIO2_TIMCMP2 = 0xFF18; // high|low 
+   	FLEXIO2_TIMCMP2 = 0xFC13; // high|low 
    	FLEXIO2_TIMCFG2 = 0x00100000;
    	FLEXIO2_TIMCTL2 = 0x0F420082 | (FLEXIO2PIN_SYNC << 8);  
    	// H Active Line Timer = sets the delay to start pixels from H sync (PWM)
-   	FLEXIO2_TIMCMP4 = 0xD740; // high|low   
+   	FLEXIO2_TIMCMP4 = 0xD03F; // high|low   
    	FLEXIO2_TIMCFG4 = 0x00100000;
    	FLEXIO2_TIMCTL4 = 0x0F430182;
    	//--------------------------------------------------------------------------------
@@ -111,11 +111,11 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	FLEXIO2_TIMCFG7 = 0x01100000;
    	FLEXIO2_TIMCTL7 = 0x13400003;
    	// V Sync signal - Drives the V Sync signal pin
-   	FLEXIO2_TIMCMP5 = 0x9300; //0x8D01; // high|low    	
+   	FLEXIO2_TIMCMP5 = 0x9400; //0x9400; // high|low    	
    	FLEXIO2_TIMCFG5 = 0x00100000;
    	FLEXIO2_TIMCTL5 = 0x1F410082 | (FLEXIO2PIN_SYNC << 8);
    	// V Sync active lines - disables pixels during V Sync
-   	FLEXIO2_TIMCMP6 = 0x850E; //0x7717; // high|low    	
+   	FLEXIO2_TIMCMP6 = 0x850F; //0x850F; // high|low    	
    	FLEXIO2_TIMCFG6 = 0x00100000;
    	FLEXIO2_TIMCTL6 = 0x1F430282;
    	
