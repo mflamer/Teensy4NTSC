@@ -1,8 +1,8 @@
 #include <DMAChannel.h>
 
 // Color constants
-#define BLACK false
-#define WHITE true
+#define BLACK 0x0
+#define WHITE 0xF
 
 typedef unsigned char byte;
 
@@ -16,23 +16,23 @@ public:
 	Teensy4NTSC(byte pinSync, byte pinPixels, int v_res = 256);
 
 	// Clear screen to a color
-	void	clear(bool color = BLACK);
+	void	clear(char color = BLACK);
 
 	//// Drawing functions /////////////////////////////////////////////////////////////////////
 	// The follwing functions draw shapes in either white (default) or black.
 	//
 	// Draw a pixel at a specified (x, y) coordinate 		
-	void 	pixel(int x, int y, bool color = WHITE);
+	void 	pixel(int x, int y, char color = WHITE);
 	// Draw a line from (x0,y0) to (x1,y1) 
-	void	line(int x0, int y0, int x1, int y1, bool color = WHITE);
+	void	line(int x0, int y0, int x1, int y1, char color = WHITE);
 	// Draw a filled or empty rectangle defined by lower left and top right coordinates
-	void	rectangle(int x0, int y0, int x1, int y1, bool fill = false, bool color = WHITE);
+	void	rectangle(int x0, int y0, int x1, int y1, bool fill = false, char color = WHITE);
 	// Draw a filled or empty circle defined by a center coordinate and radius
-	void	circle(int xc, int yc, int r, bool fill = false, bool color = WHITE);
+	void	circle(int xc, int yc, int r, bool fill = false, char color = WHITE);
 	// Draw a single character at a specified coordinate.
-	void	character(int c, int x, int y, bool color = WHITE);
+	void	character(int c, int x, int y, char color = WHITE);
 	// Draw a single string of characters at a specified coordinate.
-	void	text(const char* s, int x, int y, bool color = WHITE);
+	void	text(const char* s, int x, int y, char color = WHITE);
 
 
 	// Dump the buffer to serial for debugging
@@ -47,7 +47,7 @@ private:
 	static const int v_active_lines = 256;
 	static const int v_blank_lines = 12;
 
-	static int buffer[v_active_lines + v_blank_lines][10];
+	static int buffer[v_active_lines + v_blank_lines][40];
 	static DMAChannel dma;	
     
 	
@@ -55,7 +55,7 @@ private:
     int 	clampV(int v);
     void 	order(int* v0, int* v1);
 
-    void	circleStep(int xc, int yc, int x, int y, bool fill, bool clear);
+    void	circleStep(int xc, int yc, int x, int y, bool fill, char color);
     
 };
 

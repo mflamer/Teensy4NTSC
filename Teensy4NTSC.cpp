@@ -13,7 +13,7 @@
 
 
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-int Teensy4NTSC::buffer[v_active_lines + v_blank_lines][10] = {0}; 
+int Teensy4NTSC::buffer[v_active_lines + v_blank_lines][40] = {0}; 
 int Teensy4NTSC::v_res = 256;
 
 Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
@@ -23,7 +23,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, 10 * 4 * (v_active_lines + v_blank_lines));
+   	dma.sourceBuffer((int*)buffer, 40 * 4 * (v_active_lines + v_blank_lines));
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -56,31 +56,40 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
 		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_SYNC = 19;break;	
    	}
 
-   	int FLEXIO2PIN_PIXELS = 0; 	
-   	switch(pinPixels){
-   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_PIXELS = 10;break;	
-		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_PIXELS = 11;break;	
-		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_PIXELS = 0;break;
-		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_PIXELS = 1;break;
-		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_PIXELS = 2;break;
-		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_PIXELS = 3;break;
-		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_PIXELS = 12;break;	
-		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_PIXELS = 13;break;	
-		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_PIXELS = 16;break;	
-		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_PIXELS = 17;break;	
-		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_PIXELS = 18;break;	
-		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_PIXELS = 19;break;	
-   	}
+   	int FLEXIO2PIN_PIXELS = 16; 	
+
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; // pin 8 MSB
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; // pin 7
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; // pin 36
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; // pin 37 LSB
+
+	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4;
+	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4;
+
+  //  	switch(pinPixels){
+  //  	   case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_PIXELS = 10;break;	
+		// case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_PIXELS = 11;break;	
+		// case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_PIXELS = 0;break;
+		// case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_PIXELS = 1;break;
+		// case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_PIXELS = 2;break;
+		// case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_PIXELS = 3;break;
+		// case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_PIXELS = 12;break;	
+		// case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_PIXELS = 13;break;	
+		// case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_PIXELS = 16;break;	
+		// case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_PIXELS = 17;break;	
+		// case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_PIXELS = 18;break;	
+		// case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_PIXELS = 19;break;	
+  //  	}
 
 
    	//--------------------------------------------------------------------------------
    	// Pixels
    	//--------------------------------------------------------------------------------
    	// Shifter for serial pixels out from DMA in 32b chunks   
-   	FLEXIO2_SHIFTCFG0 = 0x00000020; // set stop bit 0 otherwise line stays high
+   	FLEXIO2_SHIFTCFG0 = 0x00030020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer - controls the pixel timing and count for Shifter0
-   	FLEXIO2_TIMCMP1 = 0x3F07; // (32 * 2) - 1 |     
+   	FLEXIO2_TIMCMP1 = 0x0F07; // (32 * 2) - 1 |     
    	FLEXIO2_TIMCFG1 = 0x00001120;
    	FLEXIO2_TIMCTL1 = 0x00000001; 
    	//--------------------------------------------------------------------------------
@@ -150,12 +159,13 @@ void Teensy4NTSC::order(int* v0, int* v1){
 }
 
 
-void Teensy4NTSC::clear(bool color){
-	int v = color ? 0xFFFFFFFF : 0x00000000;
+void Teensy4NTSC::clear(char color){
+	int v = color;//(color | color << 4 | color << 8 | color << 12 |
+		     //color << 16 | color << 20 | color << 24 | color << 28 );
 	int floor_y = (v_active_lines - v_res) >> 1;
 	int ceil_y = floor_y + v_res;
 	for (int j = floor_y; j <= ceil_y; j++) {
-      	for (int i = 0; i < 10; i++) {
+      	for (int i = 0; i < 40; i++) {
            	buffer[j][i] = v;
       	}
    	}
@@ -163,8 +173,8 @@ void Teensy4NTSC::clear(bool color){
 
 void Teensy4NTSC::dump_buffer(){
 	for (int j = 0; j < v_res; j++) {
-      	for (int i = 0; i < 10; i++) {
-           	Serial.print(buffer[j][i]);
+      	for (int i = 0; i < 40; i++) {
+           	Serial.print(buffer[j][i], HEX);
       	}
       	Serial.print('\n');
    	}
@@ -172,17 +182,18 @@ void Teensy4NTSC::dump_buffer(){
 
 
 
-void Teensy4NTSC::pixel(int x, int y, bool color){
+void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
    y = clampV(y);
-   int p = 0x80000000 >> (x & 0x1F);
+   int m = 0xF << (28 - ((x & 0x7) << 2));
+   int p = (color & 0xF) << (28 - ((x & 0x7) << 2));
    int _y = (v_active_lines - 1) - y; // set origin at bottom left
-   if(color == BLACK) buffer[_y][x >> 5] &= (~p);
-   else buffer[_y][x >> 5] |= p;
+   buffer[_y][x >> 3] &= ~m; // clear 4 bits with mask
+   buffer[_y][x >> 3] |= p; // set pixel
 }
 
 
-void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool color)
+void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char color)
 {
     int dx =  abs(x1-x0);
     int sx = x0<x1 ? 1 : -1;
@@ -205,7 +216,7 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, bool color)
 }
 
 
-void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, bool color){
+void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, char color){
 
 	if(fill){
 		order(&y0, &y1);
@@ -224,7 +235,7 @@ void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, bool colo
 }
 
 
-void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, bool color)
+void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, char color)
 {
 	if(fill){
 		line(xc+x, yc+y, xc-x, yc+y, color);
@@ -249,7 +260,7 @@ void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, bool color
 }
  
 
-void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool color)
+void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, char color)
 {
     int x = 0, y = r;
     int d = 3 - 2 * r;
@@ -268,21 +279,19 @@ void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, bool color)
 }
 
 
-void Teensy4NTSC::character(int c, int x, int y, bool invert){	
+void Teensy4NTSC::character(int c, int x, int y, char color){	
 	for(int j = 0; j < 12; j++){
 		char row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
-		for(int i = 0; i < 8; i++){
-			bool p = (row & (0x80 >> i)) ? false : true;  
-			p = invert ? !p : p;
-			pixel(x + i, y - j, p);
+		for(int i = 0; i < 8; i++){ 
+			if(row & (0x80 >> i)) pixel(x + i, y - j, color);
 		}
 	}
 }
 
-void Teensy4NTSC::text(const char* s, int x, int y, bool invert){
+void Teensy4NTSC::text(const char* s, int x, int y, char color){
 	char c;
 	while((c = *s++)){
-		character(c, x, y, invert);
+		character(c, x, y, color);
 		x += 8;
 	}
 }
