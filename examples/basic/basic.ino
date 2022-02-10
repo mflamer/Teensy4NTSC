@@ -18,7 +18,7 @@ void setup() {
    	ntsc.clear();
     for(int x = 0; x < ntsc.h_res; x++){
         for(int y = 0; y < ntsc.v_res; y++){
-            ntsc.pixel(x, y, (x & 0xF));
+            ntsc.pixel(x, y, (x & 0xF0) >> 4);
         }
     }
    	//ntsc.pixel(50, ntsc.v_res-2, 0x5);

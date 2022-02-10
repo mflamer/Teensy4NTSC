@@ -32,7 +32,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
 
 	
    	// Setup FlexIO
-   	// Fast FlexIO CLK  
+   	// Fast FlexIO CLK (120MHz)
    	CCM_CS1CDR &= ~( CCM_CS1CDR_FLEXIO2_CLK_PODF( 7 ) );
    	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 );
    	// Enable CLK
@@ -89,7 +89,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	FLEXIO2_SHIFTCFG0 = 0x00030020; // set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer - controls the pixel timing and count for Shifter0
-   	FLEXIO2_TIMCMP1 = 0x0F07; // (32 * 2) - 1 |     
+   	FLEXIO2_TIMCMP1 = 0x0F07; // (32 * 2) - 1 0x0F07     
    	FLEXIO2_TIMCFG1 = 0x00001120;
    	FLEXIO2_TIMCTL1 = 0x00000001; 
    	//--------------------------------------------------------------------------------
