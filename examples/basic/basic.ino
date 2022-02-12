@@ -14,14 +14,14 @@ void setup() {
 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
 
-   	ntsc = Teensy4NTSC(6, 10, 240);   
-   	ntsc.clear();
-    for(int x = 0; x < ntsc.h_res; x++){
-        for(int y = 0; y < ntsc.v_res; y++){
-            ntsc.pixel(x, y, (x & 0xF0) >> 4);
-        }
-    }
-   	//ntsc.pixel(50, ntsc.v_res-2, 0x5);
+   	ntsc = Teensy4NTSC(240);   
+   	ntsc.clear(0xFF);
+    // for(int x = 0; x < ntsc.h_res; x++){
+    //     for(int y = 0; y < ntsc.v_res; y++){
+    //         ntsc.pixel(x, y, x & 0xFF);
+    //     }
+    // }
+   	// ntsc.pixel(50, ntsc.v_res-2, 0x5);
    	ntsc.dump_buffer();
 
    	//pinMode(36, OUTPUT);

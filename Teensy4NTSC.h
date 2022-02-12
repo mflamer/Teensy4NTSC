@@ -1,19 +1,20 @@
 #include <DMAChannel.h>
 
 // Color constants
-#define BLACK 0x0
-#define WHITE 0xF
+#define BLACK 0x00
+#define WHITE 0xFF
 
 typedef unsigned char byte;
 
 class Teensy4NTSC {
-public:
-	Teensy4NTSC(){}
-
-	// Create object and set pin selections
-	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
+public:	
+	// Create object and set vertical resolution
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
-	Teensy4NTSC(byte pinSync, byte pinPixels, int v_res = 256);
+	Teensy4NTSC(int v_res = 256);
+
+	// Output pins are fixed 
+	// 10 = Sync
+	// 6,9,32,8,7,36,37,35 = MSB-LSB for 8 bit grayscale
 
 	// Clear screen to a color
 	void	clear(char color = BLACK);
@@ -39,7 +40,8 @@ public:
 	void	dump_buffer();
 
 	static int v_res;
-	static const int h_res = 320;
+	#define HRES 320
+	static const int h_res = HRES;
 	
 
 private:
@@ -47,7 +49,7 @@ private:
 	static const int v_active_lines = 256;
 	static const int v_blank_lines = 12;
 
-	static int buffer[v_active_lines + v_blank_lines][40];
+	static int buffer[v_active_lines + v_blank_lines][HRES];
 	static DMAChannel dma;	
     
 	
@@ -59,4 +61,13 @@ private:
     
 };
 
+
+//FlexIO pin 10 - teensy pin 6  MSB
+//FlexIO pin 11 - teensy pin 9
+//FlexIO pin 12 - teensy pin 32	 
+//FlexIO pin 16 - teensy pin 8  
+//FlexIO pin 17 - teensy pin 7
+//FlexIO pin 18 - teensy pin 36
+//FlexIO pin 19 - teensy pin 37 
+//FlexIO pin 28 - teensy pin 35 LSB
 

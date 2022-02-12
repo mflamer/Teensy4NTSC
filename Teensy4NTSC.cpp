@@ -13,17 +13,17 @@
 
 
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-int Teensy4NTSC::buffer[v_active_lines + v_blank_lines][40] = {0}; 
+int Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES] = {0}; 
 int Teensy4NTSC::v_res = 256;
 
-Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
+Teensy4NTSC::Teensy4NTSC(int v_res){
 	
 	 this->v_res = MAX(0, MIN(v_res, v_active_lines));  	
 
    	//DMA Setup
    	dma.begin();
    	dma.disable();
-   	dma.sourceBuffer((int*)buffer, 40 * 4 * (v_active_lines + v_blank_lines));
+   	dma.sourceBuffer((int*)buffer, HRES * 4 * (v_active_lines + v_blank_lines));
    	dma.transferSize(4);
    	dma.destination(FLEXIO2_SHIFTBUFBIS0);
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
@@ -39,58 +39,36 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Enable FlexIO module
    	FLEXIO2_CTRL |= 1;   
-   	// Pad MUX for 2 pins
-   	int FLEXIO2PIN_SYNC = 0; 	
-   	switch(pinSync){
-   		case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_SYNC = 10;break;	
-		case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_SYNC = 11;break;	
-		case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_SYNC = 0;break;
-		case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_SYNC = 1;break;
-		case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_SYNC = 2;break;
-		case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_SYNC = 3;break;
-		case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_SYNC = 12;break;	
-		case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_SYNC = 13;break;	
-		case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_SYNC = 16;break;	
-		case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_SYNC = 17;break;	
-		case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_SYNC = 18;break;	
-		case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_SYNC = 19;break;	
-   	}
+   	
+   	// Pin Mux for FlexIO signals
+   	int FLEXIO2PIN_SYNC = 0;
+   	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; // FlexIO pin 0 - teensy pin 10  SYNC
 
-   	int FLEXIO2PIN_PIXELS = 16; 	
+   	int FLEXIO2PIN_PIXELS = 10;
+   	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; // FlexIO pin 10 - teensy pin 6  MSB
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; // FlexIO pin 11 - teensy pin 9
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_12 = 4; // FlexIO pin 12 - teensy pin 32	 
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; // FlexIO pin 16 - teensy pin 8  
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; // FlexIO pin 17 - teensy pin 7
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; // FlexIO pin 18 - teensy pin 36
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; // FlexIO pin 19 - teensy pin 37 
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; // FlexIO pin 28 - teensy pin 35 LSB
 
-	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; // pin 8 MSB
-	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; // pin 7
-	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; // pin 36
-	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; // pin 37 LSB
-
-	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4;
-	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4;
-
-  //  	switch(pinPixels){
-  //  	   case 6 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_10 = 4; FLEXIO2PIN_PIXELS = 10;break;	
-		// case 9 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; FLEXIO2PIN_PIXELS = 11;break;	
-		// case 10: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; FLEXIO2PIN_PIXELS = 0;break;
-		// case 12: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; FLEXIO2PIN_PIXELS = 1;break;
-		// case 11: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; FLEXIO2PIN_PIXELS = 2;break;
-		// case 13: IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; FLEXIO2PIN_PIXELS = 3;break;
-		// case 35: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; FLEXIO2PIN_PIXELS = 12;break;	
-		// case 39: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; FLEXIO2PIN_PIXELS = 13;break;	
-		// case 8 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; FLEXIO2PIN_PIXELS = 16;break;	
-		// case 7 : IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; FLEXIO2PIN_PIXELS = 17;break;	
-		// case 36: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; FLEXIO2PIN_PIXELS = 18;break;	
-		// case 37: IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; FLEXIO2PIN_PIXELS = 19;break;	
-  //  	}
-
-
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; // FlexIO pin 1 - teensy pin 12
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; // FlexIO pin 2 - teensy pin 11
+	
+	
    	//--------------------------------------------------------------------------------
    	// Pixels
    	//--------------------------------------------------------------------------------
+   	// Enable Shifter0 DMA signal
+   	FLEXIO2_SHIFTSDEN |= 1; 
    	// Shifter for serial pixels out from DMA in 32b chunks   
-   	FLEXIO2_SHIFTCFG0 = 0x00030020; // set stop bit 0 otherwise line stays high
+   	FLEXIO2_SHIFTCFG0 = 0x001F0000; // shift 32b | set stop bit 0 otherwise line stays high 0x001F0020
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
    	// Pixel timer - controls the pixel timing and count for Shifter0
-   	FLEXIO2_TIMCMP1 = 0x0F07; // (32 * 2) - 1 0x0F07     
-   	FLEXIO2_TIMCFG1 = 0x00001120;
+   	FLEXIO2_TIMCMP1 = 0x0307; // (1 * 2) - 1 0x0F07     
+   	FLEXIO2_TIMCFG1 = 0x00001100; //0x00001120
    	FLEXIO2_TIMCTL1 = 0x00000001; 
    	//--------------------------------------------------------------------------------
    	// H_Sync
@@ -99,7 +77,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	// enabled by AND gate below (shifter 1)
     FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
 	FLEXIO2_TIMCFG0 = 0x00002600;
-	FLEXIO2_TIMCTL0 = 0x0A400501;		
+	FLEXIO2_TIMCTL0 = 0x0A400001; //0x0A400501
    	// Scale CLK for H line PWMs (next 2 timers 2 & 4)  
    	FLEXIO2_TIMCMP3 = 0x0000001B; // (H_ACTIVE / 2) - 1   	
    	FLEXIO2_TIMCFG3 = 0x00000000;
@@ -111,7 +89,7 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	// H Active Line Timer = sets the delay to start pixels from H sync (PWM)
    	FLEXIO2_TIMCMP4 = 0xD23D; // high|low   
    	FLEXIO2_TIMCFG4 = 0x00100000;
-   	FLEXIO2_TIMCTL4 = 0x0F430182;
+   	FLEXIO2_TIMCTL4 = 0x0F430182; //output on pin 1
    	//--------------------------------------------------------------------------------
    	// V_Sync
    	//--------------------------------------------------------------------------------
@@ -126,14 +104,13 @@ Teensy4NTSC::Teensy4NTSC(byte pinSync, byte pinPixels, int v_res){
    	// V Sync active lines - disables pixels during V Sync
    	FLEXIO2_TIMCMP6 = 0x850F; //0x850F; // high|low    	
    	FLEXIO2_TIMCFG6 = 0x00100000;
-   	FLEXIO2_TIMCTL6 = 0x1F430282;
+   	FLEXIO2_TIMCTL6 = 0x1F430282; //output on pin 2
    	
    	// // Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
    	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
    	FLEXIO2_SHIFTCTL1 = 0x00030507;
    	FLEXIO2_SHIFTBUF1 = 0x00000008;   	
-   	// Enable Shifter0 DMA signal
-   	FLEXIO2_SHIFTSDEN |= 1;   	
+   	  	
    	
 }
 
@@ -158,22 +135,24 @@ void Teensy4NTSC::order(int* v0, int* v1){
 	}
 }
 
+// Shuffle for kludgy bit storage due to FlexIO -> Teensy pin layout
+int shuffle(char c){
+	return ((c & 0xE0) << 24) | ((c & 0x1E) << 21) | ((c & 0x01) << 13);
+}
 
-void Teensy4NTSC::clear(char color){
-	int v = color;//(color | color << 4 | color << 8 | color << 12 |
-		     //color << 16 | color << 20 | color << 24 | color << 28 );
+void Teensy4NTSC::clear(char color){    
 	int floor_y = (v_active_lines - v_res) >> 1;
 	int ceil_y = floor_y + v_res;
 	for (int j = floor_y; j <= ceil_y; j++) {
-      	for (int i = 0; i < 40; i++) {
-           	buffer[j][i] = v;
+      	for (int i = 0; i < HRES; i++) {
+           	buffer[j][i] = 0xFFFFFFFF;//shuffle(color);
       	}
    	}
 }
 
 void Teensy4NTSC::dump_buffer(){
 	for (int j = 0; j < v_res; j++) {
-      	for (int i = 0; i < 40; i++) {
+      	for (int i = 0; i < HRES; i++) {
            	Serial.print(buffer[j][i], HEX);
       	}
       	Serial.print('\n');
@@ -184,12 +163,9 @@ void Teensy4NTSC::dump_buffer(){
 
 void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
-   y = clampV(y);
-   int m = 0xF << (28 - ((x & 0x7) << 2));
-   int p = (color & 0xF) << (28 - ((x & 0x7) << 2));
+   y = clampV(y); 
    int _y = (v_active_lines - 1) - y; // set origin at bottom left
-   buffer[_y][x >> 3] &= ~m; // clear 4 bits with mask
-   buffer[_y][x >> 3] |= p; // set pixel
+   buffer[_y][x] = shuffle(color); // set pixel   	
 }
 
 
