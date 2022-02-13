@@ -61,23 +61,45 @@ Teensy4NTSC::Teensy4NTSC(int v_res){
    	//--------------------------------------------------------------------------------
    	// Pixels
    	//--------------------------------------------------------------------------------
-   	// Enable Shifter0 DMA signal
-   	FLEXIO2_SHIFTSDEN |= 1; 
-   	// Shifter for serial pixels out from DMA in 32b chunks   
-   	FLEXIO2_SHIFTCFG0 = 0x001F0000; // shift 32b | set stop bit 0 otherwise line stays high 0x001F0020
+   	// Enable Shifter7 DMA signal
+   	FLEXIO2_SHIFTSDEN = 0x01;
+
+   	FLEXIO2_SHIFTCFG0 = 0x001F0000; // shift 32b | set stop bit 0 otherwise line stays high 0x001F0020 
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS << 8);
-   	// Pixel timer - controls the pixel timing and count for Shifter0
-   	FLEXIO2_TIMCMP1 = 0x0307; // (1 * 2) - 1 0x0F07     
+   	// Pixel timer - controls the pixel timing
+   	FLEXIO2_TIMCMP1 = 0x0007; // (t * 2) - 1      
    	FLEXIO2_TIMCFG1 = 0x00001100; //0x00001120
-   	FLEXIO2_TIMCTL1 = 0x00000001; 
-   	//--------------------------------------------------------------------------------
-   	// H_Sync
-   	//--------------------------------------------------------------------------------
+   	FLEXIO2_TIMCTL1 = 0x03400003; 
    	// Pixel line counter - controls the number of 32b words sent per line
    	// enabled by AND gate below (shifter 1)
     FLEXIO2_TIMCMP0 = 0x13FF; // load 10 words
-	FLEXIO2_TIMCFG0 = 0x00002600;
-	FLEXIO2_TIMCTL0 = 0x0A400001; //0x0A400501
+	FLEXIO2_TIMCFG0 = 0x00002400;
+	FLEXIO2_TIMCTL0 = 0x00000503; //0x0A400501
+	// Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
+   	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
+   	FLEXIO2_SHIFTCTL1 = 0x00030507;
+   	FLEXIO2_SHIFTBUF1 = 0x00000008;   	
+
+
+ //   	// Shifter for serial pixels out from DMA in 32b chunks   
+ //   	FLEXIO2_SHIFTCFG0 = 0x001F0000; // shift 32b | set stop bit 0 otherwise line stays high 0x001F0020
+ //   	FLEXIO2_SHIFTCTL0 = 0x00030000 | (FLEXIO2PIN_PIXELS << 8);   	
+ //   	// Pixel line counter - controls the number of pixels sent per line   
+ //   	// enabled by AND gate below (shifter 1)	
+ //    FLEXIO2_TIMCMP0 = 0x027F; // (HRES * 2) - 1 
+	// FLEXIO2_TIMCFG0 = 0x00302600;
+	// FLEXIO2_TIMCTL0 = 0x07400003;
+	// // Pixel timer - controls the pixel timing	
+ //   	FLEXIO2_TIMCMP1 = 0x0007; // (t * 2) - 1     
+ //   	FLEXIO2_TIMCFG1 = 0x00001600;
+ //   	FLEXIO2_TIMCTL1 = 0x0A400003; 
+	// Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
+   	// FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
+   	// FLEXIO2_SHIFTCTL1 = 0x00030507;
+   	// FLEXIO2_SHIFTBUF1 = 0x00000008;
+   	//--------------------------------------------------------------------------------
+   	// H_Sync
+   	//--------------------------------------------------------------------------------   
    	// Scale CLK for H line PWMs (next 2 timers 2 & 4)  
    	FLEXIO2_TIMCMP3 = 0x0000001B; // (H_ACTIVE / 2) - 1   	
    	FLEXIO2_TIMCFG3 = 0x00000000;
@@ -106,10 +128,7 @@ Teensy4NTSC::Teensy4NTSC(int v_res){
    	FLEXIO2_TIMCFG6 = 0x00100000;
    	FLEXIO2_TIMCTL6 = 0x1F430282; //output on pin 2
    	
-   	// // Shifter as AND gate from timers 4 & 6 (shifter 1 pins = 1,2,3,4) 5 out
-   	FLEXIO2_SHIFTCFG1 = 0x00000030; // mask pins 3 & 4
-   	FLEXIO2_SHIFTCTL1 = 0x00030507;
-   	FLEXIO2_SHIFTBUF1 = 0x00000008;   	
+   	   	
    	  	
    	
 }
@@ -151,12 +170,13 @@ void Teensy4NTSC::clear(char color){
 }
 
 void Teensy4NTSC::dump_buffer(){
-	for (int j = 0; j < v_res; j++) {
-      	for (int i = 0; i < HRES; i++) {
-           	Serial.print(buffer[j][i], HEX);
-      	}
-      	Serial.print('\n');
-   	}
+	// for (int j = 0; j < v_res; j++) {
+ //      	for (int i = 0; i < HRES; i++) {
+ //           	Serial.print(buffer[j][i], HEX);
+ //      	}
+ //      	Serial.print('\n');
+ //   	}
+	Serial.print(FLEXIO2_SHIFTERR);
 }
 
 
