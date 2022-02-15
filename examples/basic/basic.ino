@@ -10,7 +10,7 @@ void setup() {
 	// Start the system and begin sending the NTSC signal. 
     // v_res = The desired display vertical resolution. Optimal value depends on display device. Max = 256.
     // Note: h_res is fixed at 320.
-    ntsc.begin(210);
+    ntsc.begin(240);
     ntsc.clear();
 
     // for(int y = 0; y < ntsc.v_res; y++){
@@ -136,7 +136,7 @@ void loop() {
         luma = int(random(15));
         filled = bool(random(2));
         ntsc.circle(x, y, r, luma, filled);
-        
+        delay(5);
     }
 
     delay(1000);
@@ -165,7 +165,6 @@ void loop() {
         }
 
         ntsc.text("Fading trace ", 4, 15);
-        ntsc.dump_buffer();
         delay(50); //delay must be longer than than NTSC frame time
     }
 
