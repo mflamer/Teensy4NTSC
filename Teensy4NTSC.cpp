@@ -197,14 +197,14 @@ void Teensy4NTSC::clear(char color){
 }
 
 void Teensy4NTSC::dump_buffer(){
-	// for (int j = 0; j < (v_active_lines + v_blank_lines); j++) {
- //      	for (int i = 0; i < HRES; i++) {
- //           	Serial.print(buffer[j][i] & 0x0F, HEX);
- //           	Serial.print((buffer[j][i] >> 4) & 0x0F, HEX);
- //      	}
- //      	Serial.print(" |\n");
- //   	}
-	Serial.print(FLEXIO2_SHIFTERR);
+	for (int j = 0; j < (v_active_lines + v_blank_lines); j++) {
+      	for (int i = 0; i < HRES; i++) {
+           	Serial.print(buffer[j][i] & 0x0F, HEX);
+           	Serial.print((buffer[j][i] >> 4) & 0x0F, HEX);
+      	}
+      	Serial.print(" |\n");
+   	}
+	//Serial.print(FLEXIO2_SHIFTERR);
 }
 
 
@@ -213,18 +213,19 @@ void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_active_lines - 1) - y; // set origin at bottom left
-   int a = (((int)(&buffer[_y][x]) & 0xFFFFFFE0) | (((int)(&buffer[_y][x]) & 0x1F) >> 1));
-   if((int)(&buffer[_y][x]) & 0x1){ // this is an odd pixel
-	   *((char*)a) &= 0x0F; 			 	 // clear high nibble
-	   *((char*)a) |= ((0x0F & color) << 4); // set high nibble  
-	   *((char*)(a + 4)) &= 0x0F; 			 // clear high nibble
-	   *((char*)(a + 4)) |= (0xF0 & color);  // set high nibble   	
+   int a = (int)&buffer[_y][x];
+   char* a_ = ((a & 0xFFFFFFE0) | ((a & 0x1F) >> 1));
+   if(a & 0x1){ // this is an odd pixel
+	   *(a_) &= 0x0F; 			 	 // clear high nibble
+	   *(a_) |= ((0x0F & color) << 4); // set high nibble  
+	   *(a_ + 16) &= 0x0F; 			 // clear high nibble
+	   *(a_ + 16) |= (0xF0 & color);  // set high nibble   	
 	}
 	else{ // this is an even pixel
-	   *((char*)a) &= 0xF0; 			 	 // clear low nibble
-	   *((char*)a) |= (0x0F & color); // set high nibble  
-	   *((char*)(a + 4)) &= 0xF0; 			 // clear high nibble
-	   *((char*)(a + 4)) |= ((0xF0 & color) >> 4);  // set low nibble   	
+	   *(a_) &= 0xF0; 			 	 // clear low nibble
+	   *(a_) |= (0x0F & color); // set high nibble  
+	   *(a_ + 16) &= 0xF0; 			 // clear high nibble
+	   *(a_ + 16) |= ((0xF0 & color) >> 4);  // set low nibble   	
 	}
 }
 

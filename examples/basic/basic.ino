@@ -21,7 +21,7 @@ void setup() {
    	ntsc.clear();
     for(int x = 0; x < ntsc.h_res; x++){
         for(int y = 0; y < ntsc.v_res; y++){
-            ntsc.pixel(x, y, x & 0xF0);
+            ntsc.pixel(x, y, x & 0xFF);
         }
     }
    	// ntsc.pixel(3, ntsc.v_res-1, 0x00);
@@ -82,7 +82,7 @@ float intensity[512];
 
 void loop() {
 
- //  ntsc.circle(x++ % (ntsc.h_res-1), y % (ntsc.v_res-1), 3, true, BLACK);	
+ //    ntsc.circle(x++ % (ntsc.h_res-1), y % (ntsc.v_res-1), 3, true, BLACK);	
 	// y += y_;
 	// ntsc.circle(x % (ntsc.h_res-1), y % (ntsc.v_res-1), 3, true, WHITE); 
 	   
@@ -116,7 +116,7 @@ void loop() {
   //     ntsc.rectangle(x*(ntsc.h_res/15), 0, (x+1)*(ntsc.h_res/15), ntsc.v_res-1, x, x);
   //   }
   // ntsc.text("Luminance bars", 4, 15);
-  // //ntsc.dump_buffer();
+  
 
   // delay(2000);
 
@@ -135,7 +135,7 @@ void loop() {
   //         }
   //       }
   //     k = k + 0.1;
-  //     //ntsc.dump_buffer();
+      
   //   }
 
   // for (t = 0; t<100; t++)
@@ -149,7 +149,7 @@ void loop() {
   //         }
   //       }
   //     k = k - 0.1;
-  //     //ntsc.dump_buffer();
+      
   //   }
 
   // delay(1000);
@@ -169,7 +169,7 @@ void loop() {
   //         }
   //       }
   //     k = k + 0.1;
-  //     //ntsc.dump_buffer();
+     
   //   }
 
   // delay(1000);
@@ -189,7 +189,7 @@ void loop() {
   //         }
   //       }
   //     k = k + 0.5;
-  //     //ntsc.dump_buffer();
+     
   //   }
 
   // delay(1000);
