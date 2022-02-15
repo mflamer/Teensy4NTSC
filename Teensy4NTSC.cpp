@@ -21,7 +21,8 @@ char (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
 Teensy4NTSC::Teensy4NTSC(int v_res){
 	
 	this->v_res = MAX(0, MIN(v_res, v_active_lines)); 
-   	this->active_buffer = buffer + ((v_active_lines - v_res) >> 1);
+   	this->active_buffer = buffer + ((v_active_lines - this->v_res) >> 1);
+   	Serial.print(this->v_res); Serial.print('\n');
    	
 }
 
@@ -200,7 +201,7 @@ void Teensy4NTSC::clear(char color){
 }
 
 void Teensy4NTSC::dump_buffer(){
-	for (int j = 0; j < (v_active_lines + v_blank_lines); j++) {
+	for (int j = 0; j < 268; j++) {
       	for (int i = 0; i < HRES; i++) {
            	Serial.print(buffer[j][i] & 0x0F, HEX);
            	Serial.print((buffer[j][i] >> 4) & 0x0F, HEX);
@@ -213,7 +214,7 @@ void Teensy4NTSC::dump_buffer(){
 void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
    y = clampV(y); 
-   int _y = (v_active_lines - 1) - y; // set origin at bottom left
+   int _y = (v_res - 1) - y; // set origin at bottom left
    swizzle(&active_buffer[_y][x], color);
 }
 

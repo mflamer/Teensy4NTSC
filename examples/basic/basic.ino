@@ -14,7 +14,7 @@ void setup() {
 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
 
-   	ntsc = Teensy4NTSC(216);  
+   	ntsc = Teensy4NTSC(210);  
     ntsc.start();
 
 
@@ -43,7 +43,7 @@ void setup() {
    	// ntsc.line(0, 0, ntsc.h_res-1, ntsc.v_res-1);
    	// ntsc.line(0, ntsc.v_res-1, ntsc.h_res-1, 0);
 
-   	//ntsc.rectangle(0, 0, ntsc.h_res-1, ntsc.v_res-1, false, 0x77);
+   	ntsc.rectangle(0, 0, ntsc.h_res-1, ntsc.v_res-1, false, 0xFF);
    	// ntsc.rectangle(0, 18, ntsc.h_res-1, ntsc.v_res-19);
 
    	// ntsc.rectangle(0, 0, 20, 20, true);
@@ -111,87 +111,87 @@ void loop() {
  //delay(15);
     
  //lumaBars
-  // ntsc.clear();
-  // for(byte x = 0; x < 16; x++)
-  //   {
-  //     ntsc.rectangle(x*(ntsc.h_res/15), 0, (x+1)*(ntsc.h_res/15), ntsc.v_res-1, x, x);
-  //   }
-  // ntsc.text("Luminance bars", 4, 15);
+  ntsc.clear();
+  for(byte x = 0; x < 16; x++)
+    {
+      ntsc.rectangle(x*(ntsc.h_res/15), 0, (x+1)*(ntsc.h_res/15), ntsc.v_res-1, x, x);
+    }
+  ntsc.text("Luminance bars", 4, 15);
   
 
-  // delay(2000);
+  delay(2000);
 
-  // //Zooming
-  // ntsc.clear();
-  // k = 0.1;
+  //Zooming
+  ntsc.clear();
+  k = 0.1;
 
-  // for (t = 0; t<100; t++)
-  //   {
-  //     for(x = 0; x < ntsc.h_res; x++)
-  //       {
-  //         for(y = 0; y < ntsc.v_res; y++)
-  //         {
-  //           fill = int(7.5 + 7.5*sin((x*y/(k*3.14*ntsc.v_res)))+0.5);
-  //           ntsc.pixel(x, y, fill);
-  //         }
-  //       }
-  //     k = k + 0.1;
+  for (t = 0; t<100; t++)
+    {
+      for(x = 0; x < ntsc.h_res; x++)
+        {
+          for(y = 0; y < ntsc.v_res; y++)
+          {
+            fill = int(7.5 + 7.5*sin((x*y/(k*3.14*ntsc.v_res)))+0.5);
+            ntsc.pixel(x, y, fill);
+          }
+        }
+      k = k + 0.1;
       
-  //   }
+    }
 
-  // for (t = 0; t<100; t++)
-  //   {
-  //     for(x = 0; x < ntsc.h_res; x++)
-  //       {
-  //         for(y = 0; y < ntsc.v_res; y++)
-  //         {
-  //           fill = int(7.5 + 7.5*sin((x*y/(k*3.14*ntsc.v_res)))+0.5);
-  //           ntsc.pixel(x, y, fill);
-  //         }
-  //       }
-  //     k = k - 0.1;
+  for (t = 0; t<100; t++)
+    {
+      for(x = 0; x < ntsc.h_res; x++)
+        {
+          for(y = 0; y < ntsc.v_res; y++)
+          {
+            fill = int(7.5 + 7.5*sin((x*y/(k*3.14*ntsc.v_res)))+0.5);
+            ntsc.pixel(x, y, fill);
+          }
+        }
+      k = k - 0.1;
       
-  //   }
+    }
 
-  // delay(1000);
+  delay(1000);
 
-  // //Zooming Sombrero
-  // ntsc.clear();
-  // k = 1.0;
+  //Zooming Sombrero
+  ntsc.clear();
+  k = 1.0;
 
-  // for (t = 0; t<100; t++)
-  //   {
-  //     for(x = 0; x < ntsc.h_res; x++)
-  //       {
-  //         for(y = 0; y < ntsc.v_res; y++)
-  //         {
-  //           fill = int(7.5 + 7.5*cos(((x-ntsc.h_res/2)*(x-ntsc.h_res/2)+(y-ntsc.v_res/2)*(y-ntsc.v_res/2))/(k*3.14*ntsc.v_res))+0.5);
-  //           ntsc.pixel(x, y, fill);
-  //         }
-  //       }
-  //     k = k + 0.1;
+  for (t = 0; t<100; t++)
+    {
+      for(x = 0; x < ntsc.h_res; x++)
+        {
+          for(y = 0; y < ntsc.v_res; y++)
+          {
+            fill = int(7.5 + 7.5*cos(((x-ntsc.h_res/2)*(x-ntsc.h_res/2)+(y-ntsc.v_res/2)*(y-ntsc.v_res/2))/(k*3.14*ntsc.v_res))+0.5);
+            ntsc.pixel(x, y, fill);
+          }
+        }
+      k = k + 0.1;
      
-  //   }
+    }
 
-  // delay(1000);
+  delay(1000);
 
-  // //Zooming Thingy
-  // ntsc.clear();
-  // k = 1.0;
+  //Zooming Thingy
+  ntsc.clear();
+  k = 1.0;
 
-  // for (t = 0; t<500; t++)
-  //   {
-  //     for(x = 0; x < ntsc.h_res; x++)
-  //       {
-  //         for(y = 0; y < ntsc.v_res; y++)
-  //         {
-  //           fill = int(7.5 + 7.5*cos(((x-ntsc.h_res/2)*(x-ntsc.h_res/2)*(y-ntsc.v_res/2)*(y-ntsc.v_res/2))/(k*3.14*ntsc.v_res))+0.5);
-  //           ntsc.pixel(x, y, fill);
-  //         }
-  //       }
-  //     k = k + 0.5;
+  for (t = 0; t<500; t++)
+    {
+      for(x = 0; x < ntsc.h_res; x++)
+        {
+          for(y = 0; y < ntsc.v_res; y++)
+          {
+            fill = int(7.5 + 7.5*cos(((x-ntsc.h_res/2)*(x-ntsc.h_res/2)*(y-ntsc.v_res/2)*(y-ntsc.v_res/2))/(k*3.14*ntsc.v_res))+0.5);
+            ntsc.pixel(x, y, fill);
+          }
+        }
+      k = k + 0.5;
      
-  //   }
+    }
 
   // delay(1000);
 // /*
