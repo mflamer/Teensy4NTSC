@@ -12,6 +12,8 @@ public:
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
 	Teensy4NTSC(int v_res = 256);
 
+	void start();
+
 	// Output pins are fixed 
 	// 10 = Sync
 	// 6,9,32,8,7,36,37,35 = MSB-LSB for 8 bit grayscale
@@ -62,12 +64,13 @@ private:
 };
 
 
-//FlexIO pin 10 - teensy pin 6  MSB
-//FlexIO pin 11 - teensy pin 9
-//FlexIO pin 12 - teensy pin 32	 
-//FlexIO pin 16 - teensy pin 8  
+//FlexIO pin 0  - teensy pin 10 LSB
+//FlexIO pin 1  - teensy pin 12
+//FlexIO pin 2  - teensy pin 11	 
+//FlexIO pin 3  - teensy pin 13  
+//FlexIO pin 16 - teensy pin 8
 //FlexIO pin 17 - teensy pin 7
-//FlexIO pin 18 - teensy pin 36
-//FlexIO pin 19 - teensy pin 37 
-//FlexIO pin 28 - teensy pin 35 LSB
+//FlexIO pin 18 - teensy pin 36 
+//FlexIO pin 19 - teensy pin 37 MSB
 
+//FlexIO pin 11 - teensy pin 9 SYNC

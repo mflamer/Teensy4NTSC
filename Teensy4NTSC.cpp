@@ -19,30 +19,35 @@ int Teensy4NTSC::v_res = 256;
 
 Teensy4NTSC::Teensy4NTSC(int v_res){
 	
-	 this->v_res = MAX(0, MIN(v_res, v_active_lines));  	
+	 this->v_res = MAX(0, MIN(v_res, v_active_lines));   	
+   	  	
+   	
+}
 
-   	//DMA Setup
+
+void Teensy4NTSC::start(){
+	//DMA Setup
    	dma.begin();
    	dma.disable();
 
-   	dma.TCD->NBYTES			= 16;
+   	dma.TCD->NBYTES			= 32;
 
    	dma.TCD->SADDR			= buffer;
-	dma.TCD->SOFF			= 8;
-	dma.TCD->ATTR_SRC		= 3;
+	dma.TCD->SOFF			= 4;
+	dma.TCD->ATTR_SRC		= 2;
 	dma.TCD->SLAST			= -(HRES * (v_active_lines + v_blank_lines));
 
 	dma.TCD->DADDR			= &FLEXIO2_SHIFTBUF0;
-	dma.TCD->DOFF			= 16;
-	dma.TCD->ATTR_DST		= (5 << 3) | 3;	
+	dma.TCD->DOFF			= 4;
+	dma.TCD->ATTR_DST		= (5 << 3) | 2;	
 	dma.TCD->DLASTSGA		= 0;
 
-	dma.TCD->BITER		= ((HRES * (v_active_lines + v_blank_lines)) / 16);
-	dma.TCD->CITER		= ((HRES * (v_active_lines + v_blank_lines)) / 16);
+	dma.TCD->BITER		= ((HRES * (v_active_lines + v_blank_lines)) / 32);
+	dma.TCD->CITER		= ((HRES * (v_active_lines + v_blank_lines)) / 32);
 
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
    	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
-   	dma.enable();
+   	
 
 	
    	// Setup FlexIO
@@ -51,7 +56,9 @@ Teensy4NTSC::Teensy4NTSC(int v_res){
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Fast FlexIO CLK (120MHz)
    	CCM_CS1CDR &= ~( CCM_CS1CDR_FLEXIO2_CLK_PODF( 7 ) );
-   	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 );   	  
+   	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 );  
+
+
    	
    	// Pin Mux for FlexIO signals
    	int FLEXIO2PIN_SYNC = 11;
@@ -83,17 +90,25 @@ Teensy4NTSC::Teensy4NTSC(int v_res){
    	// shifter0 is the output to the pins for the low nibble
    	FLEXIO2_SHIFTCFG0 = 0x00030120; // shift 32b | set stop bit 0 otherwise line stays high
    	FLEXIO2_SHIFTCTL0 = 0x01030002 | (FLEXIO2PIN_PIXELS_L << 8);
-  	FLEXIO2_SHIFTCFG1 = 0x00030000;
+  	FLEXIO2_SHIFTCFG1 = 0x00030100;
 	FLEXIO2_SHIFTCTL1 = 0x01030002;
+	FLEXIO2_SHIFTCFG2 = 0x00030100;
+	FLEXIO2_SHIFTCTL2 = 0x01030002;
+	FLEXIO2_SHIFTCFG3 = 0x00030000;
+	FLEXIO2_SHIFTCTL3 = 0x01030002;
 
    	// shifter04 is the output to the pins for the high nibble
    	FLEXIO2_SHIFTCFG4 = 0x00030120; // shift 32b | set stop bit 0 otherwise line stays high 
    	FLEXIO2_SHIFTCTL4 = 0x01030002 | (FLEXIO2PIN_PIXELS_H << 8);
-   	FLEXIO2_SHIFTCFG5 = 0x00030000;
+   	FLEXIO2_SHIFTCFG5 = 0x00030100;
 	FLEXIO2_SHIFTCTL5 = 0x01030002;
+	FLEXIO2_SHIFTCFG6 = 0x00030100;
+	FLEXIO2_SHIFTCTL6 = 0x01030002;
+	FLEXIO2_SHIFTCFG7 = 0x00030000;
+	FLEXIO2_SHIFTCTL7 = 0x01030002;
 
    	// Pixel timer - controls the pixel timing
-   	FLEXIO2_TIMCMP1 = 0x1F07; // (t * 2) - 1    send 16 then reload from DMA
+   	FLEXIO2_TIMCMP1 = 0x3F07; // (t * 2) - 1    send 32 then reload from DMA
    	FLEXIO2_TIMCFG1 = 0x00001120; 
    	FLEXIO2_TIMCTL1 = 0x03400001; 
    	// Pixel line counter - controls the number of 32b words sent per line
@@ -131,12 +146,11 @@ Teensy4NTSC::Teensy4NTSC(int v_res){
    	// V Sync active lines - disables pixels during V Sync
    	FLEXIO2_TIMCMP6 = 0x850F; //0x850F; // high|low    	
    	FLEXIO2_TIMCFG6 = 0x00100000;
-   	FLEXIO2_TIMCTL6 = 0x1F400002;    	
-   	   	
-   	// Enable FlexIO module
-   	FLEXIO2_CTRL |= 1;   	
-   	  	
-   	
+   	FLEXIO2_TIMCTL6 = 0x1F400002; 
+
+	dma.enable();
+	// Enable FlexIO module
+   	FLEXIO2_CTRL |= 1;
 }
 
 
@@ -199,7 +213,7 @@ void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_active_lines - 1) - y; // set origin at bottom left
-   int a = (((int)(&buffer[_y][x]) & 0xFFFFFFF8) | (((int)(&buffer[_y][x]) & 0x7) >> 1));
+   int a = (((int)(&buffer[_y][x]) & 0xFFFFFFE0) | (((int)(&buffer[_y][x]) & 0x1F) >> 1));
    if((int)(&buffer[_y][x]) & 0x1){ // this is an odd pixel
 	   *((char*)a) &= 0x0F; 			 	 // clear high nibble
 	   *((char*)a) |= ((0x0F & color) << 4); // set high nibble  
