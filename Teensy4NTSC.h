@@ -49,7 +49,7 @@ private:
 	static const int v_active_lines = 256;
 	static const int v_blank_lines = 12;
 
-	static int buffer[v_active_lines + v_blank_lines][HRES];
+	static char buffer[v_active_lines + v_blank_lines][HRES] __attribute__((aligned(32)));
 	static DMAChannel dma;	
     
 	

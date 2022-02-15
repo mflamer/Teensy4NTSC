@@ -15,14 +15,15 @@ void setup() {
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
 
    	ntsc = Teensy4NTSC(240);   
-   	ntsc.clear(0xFF);
-    // for(int x = 0; x < ntsc.h_res; x++){
-    //     for(int y = 0; y < ntsc.v_res; y++){
-    //         ntsc.pixel(x, y, x & 0xFF);
-    //     }
-    // }
-   	// ntsc.pixel(50, ntsc.v_res-2, 0x5);
-   	ntsc.dump_buffer();
+   	ntsc.clear();
+    for(int x = 0; x < ntsc.h_res; x++){
+        for(int y = 0; y < ntsc.v_res; y++){
+            ntsc.pixel(x, y, y & 0xFF);
+        }
+    }
+   	ntsc.pixel(3, ntsc.v_res-1, 0x00);
+    ntsc.pixel(ntsc.h_res-3, ntsc.v_res-1, 0x00);
+   	ntsc.dump_buffer(); 
 
    	//pinMode(36, OUTPUT);
    	//digitalWrite(36, HIGH);
@@ -94,6 +95,8 @@ void loop() {
  //  t++; 
 
  //delay(15);
+    
+   
 
 
 }
