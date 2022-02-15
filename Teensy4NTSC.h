@@ -15,8 +15,7 @@ public:
 
 	// Output pins
 	// 9 = Sync
-	// 37, 36, 7, 8, 13, 11, 12, 10 = MSB-LSB for 8 bit grayscale
-	
+	// 37, 36, 7, 8, 13, 11, 12, 10 = MSB-LSB for 8 bit grayscale	
 
 	//// Drawing functions /////////////////////////////////////////////////////////////////////
 	// The follwing functions draw shapes in a specified luma

@@ -282,7 +282,7 @@ void Teensy4NTSC::circle(int xc, int yc, int r, char luma, bool fill)
 {
     int x = 0, y = r;
     int d = 3 - 2 * r;
-    circleStep(xc, yc, x, y, fill, luma);
+    circleStep(xc, yc, x, y, luma, fill);
     while (y >= x++)
     {
         if (d > 0)
@@ -292,7 +292,7 @@ void Teensy4NTSC::circle(int xc, int yc, int r, char luma, bool fill)
         }
         else
             d = d + 4 * x + 6;
-        circleStep(xc, yc, x, y, fill, luma);
+        circleStep(xc, yc, x, y, luma, fill);
     }
 }
 
