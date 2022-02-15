@@ -63,15 +63,3 @@ private:
     
 };
 
-
-//FlexIO pin 0  - teensy pin 10 LSB
-//FlexIO pin 1  - teensy pin 12
-//FlexIO pin 2  - teensy pin 11	 
-//FlexIO pin 3  - teensy pin 13
-
-//FlexIO pin 16 - teensy pin 8
-//FlexIO pin 17 - teensy pin 7
-//FlexIO pin 18 - teensy pin 36 
-//FlexIO pin 19 - teensy pin 37 MSB
-
-//FlexIO pin 11 - teensy pin 9 SYNC

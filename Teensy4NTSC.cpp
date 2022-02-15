@@ -22,8 +22,8 @@ char (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
 void Teensy4NTSC::begin(int v_res){
 	this->v_res = MAX(0, MIN(v_res, v_active_lines)); 
    	this->active_buffer = buffer + ((v_active_lines - this->v_res) >> 1);
-   	//Serial.print(this->v_res); Serial.print('\n');
-
+   	
+	/////////////////////////////////////////////////////////////////////////////////////
 	//DMA Setup
    	dma.begin();
    	dma.disable();
@@ -44,39 +44,36 @@ void Teensy4NTSC::begin(int v_res){
 	dma.TCD->CITER		= ((HRES * (v_active_lines + v_blank_lines)) / 32);
 
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
-   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);				// do not disable the channel after it completes - so it just keeps going 
-   	
+   	// do not disable the channel after it completes - so it just keeps going 
+   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);	  	
 
-	
+	/////////////////////////////////////////////////////////////////////////////////////
    	// Setup FlexIO
 
    	// Enable CLK
    	CCM_CCGR3 |= CCM_CCGR3_FLEXIO2(CCM_CCGR_ON);
    	// Fast FlexIO CLK (120MHz)
    	CCM_CS1CDR &= ~( CCM_CS1CDR_FLEXIO2_CLK_PODF( 7 ) );
-   	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 );  
-
-
+   	CCM_CS1CDR |= CCM_CS1CDR_FLEXIO2_CLK_PODF( 1 ); 
    	
    	// Pin Mux for FlexIO signals
    	int FLEXIO2PIN_SYNC = 11;
-   	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; // FlexIO pin 29 - teensy pin 34   SYNC
-
    	int FLEXIO2PIN_PIXELS_L = 0;
    	int FLEXIO2PIN_PIXELS_H = 16;
+
  	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 4; // FlexIO pin 0 - teensy pin 10 LSB
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 4; // FlexIO pin 1 - teensy pin 12 
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 4; // FlexIO pin 2 - teensy pin 11
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 4; // FlexIO pin 3 - teensy pin 13
 
-	 IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; // FlexIO pin 11 - teensy pin 9 
-	// IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_12 = 4; // FlexIO pin 12 - teensy pin 32	
+	IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_11 = 4; // FlexIO pin 11 - teensy pin 9 		
 
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_00 = 4; // FlexIO pin 16 - teensy pin 8  
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_01 = 4; // FlexIO pin 17 - teensy pin 7
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_02 = 4; // FlexIO pin 18 - teensy pin 36
 	IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_03 = 4; // FlexIO pin 19 - teensy pin 37 MSB
 
+	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_12 = 4; // FlexIO pin 12 - teensy pin 32
 	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_12 = 4; // FlexIO pin 28 - teensy pin 35 
 	//IOMUXC_SW_MUX_CTL_PAD_GPIO_B1_13 = 4; // FlexIO pin 29 - teensy pin 34 	
 	
