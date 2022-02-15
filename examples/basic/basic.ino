@@ -13,9 +13,8 @@ void setup() {
 
 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
-
-   	ntsc = Teensy4NTSC(210);  
-    ntsc.start();
+ 
+    ntsc.begin(210);
 
 
    	ntsc.clear(0xFF);

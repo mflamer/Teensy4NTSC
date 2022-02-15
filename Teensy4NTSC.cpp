@@ -18,16 +18,12 @@ char Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES]  __attribute__((a
 int Teensy4NTSC::v_res = 256;
 char (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
 
-Teensy4NTSC::Teensy4NTSC(int v_res){
-	
+
+void Teensy4NTSC::begin(int v_res){
 	this->v_res = MAX(0, MIN(v_res, v_active_lines)); 
    	this->active_buffer = buffer + ((v_active_lines - this->v_res) >> 1);
-   	Serial.print(this->v_res); Serial.print('\n');
-   	
-}
+   	//Serial.print(this->v_res); Serial.print('\n');
 
-
-void Teensy4NTSC::start(){
 	//DMA Setup
    	dma.begin();
    	dma.disable();
@@ -192,10 +188,10 @@ void swizzle(char* addr, char pix){
 	}
 }
 
-void Teensy4NTSC::clear(char color){  
+void Teensy4NTSC::clear(char luma){  
 	for (int j = 0; j < v_res; j++) {
       	for (int i = 0; i < h_res; i++) {
-           	swizzle(&active_buffer[j][i], color);
+           	swizzle(&active_buffer[j][i], luma);
       	}
    	}
 }
@@ -211,14 +207,14 @@ void Teensy4NTSC::dump_buffer(){
 	//Serial.print(FLEXIO2_SHIFTERR); // debug dma access issues
 }
 
-void Teensy4NTSC::pixel(int x, int y, char color){
+void Teensy4NTSC::pixel(int x, int y, char luma){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_res - 1) - y; // set origin at bottom left
-   swizzle(&active_buffer[_y][x], color);
+   swizzle(&active_buffer[_y][x], luma);
 }
 
-void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char color)
+void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char luma)
 {
     int dx =  abs(x1-x0);
     int sx = x0<x1 ? 1 : -1;
@@ -226,7 +222,7 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char color)
     int sy = y0<y1 ? 1 : -1;
     int err = dx+dy;  /* error value e_xy */
     while (true){  /* loop */
-        pixel(x0, y0, color);
+        pixel(x0, y0, luma);
         if (x0 == x1 && y0 == y1) break;
         int e2 = 2 * err;
         if (e2 >= dy){/* e_xy+e_x > 0 */
@@ -241,55 +237,55 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char color)
 }
 
 
-void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, bool fill, char color){
+void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, char luma, bool fill){
 
 	if(fill){
 		order(&y0, &y1);
 		while(y0 <= y1){
-			line(x0, y0, x1, y0, color);
+			line(x0, y0, x1, y0, luma);
 			y0++; 
 		}
 	}
 	else{
-		line(x0, y0, x0, y1, color);
-		line(x0, y1, x1, y1, color);
-		line(x1, y1, x1, y0, color);
-		line(x0, y0, x1, y0, color);
+		line(x0, y0, x0, y1, luma);
+		line(x0, y1, x1, y1, luma);
+		line(x1, y1, x1, y0, luma);
+		line(x0, y0, x1, y0, luma);
 	}
 	
 }
 
 
-void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, bool fill, char color)
+void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, char luma, bool fill)
 {
 	if(fill){
-		line(xc+x, yc+y, xc-x, yc+y, color);
-		line(xc-x, yc+y, xc+x, yc+y, color);
-	    line(xc+x, yc-y, xc-x, yc-y, color);
-	    line(xc-x, yc-y, xc+x, yc-y, color);
-	    line(xc+y, yc+x, xc-y, yc+x, color);
-	    line(xc-y, yc+x, xc+y, yc+x, color);
-	    line(xc+y, yc-x, xc-y, yc-x, color);
-	    line(xc-y, yc-x, xc+y, yc-x, color);
+		line(xc+x, yc+y, xc-x, yc+y, luma);
+		line(xc-x, yc+y, xc+x, yc+y, luma);
+	    line(xc+x, yc-y, xc-x, yc-y, luma);
+	    line(xc-x, yc-y, xc+x, yc-y, luma);
+	    line(xc+y, yc+x, xc-y, yc+x, luma);
+	    line(xc-y, yc+x, xc+y, yc+x, luma);
+	    line(xc+y, yc-x, xc-y, yc-x, luma);
+	    line(xc-y, yc-x, xc+y, yc-x, luma);
 	}
 	else{
-	    pixel(xc+x, yc+y, color);
-	    pixel(xc-x, yc+y, color);
-	    pixel(xc+x, yc-y, color);
-	    pixel(xc-x, yc-y, color);
-	    pixel(xc+y, yc+x, color);
-	    pixel(xc-y, yc+x, color);
-	    pixel(xc+y, yc-x, color);
-	    pixel(xc-y, yc-x, color);
+	    pixel(xc+x, yc+y, luma);
+	    pixel(xc-x, yc+y, luma);
+	    pixel(xc+x, yc-y, luma);
+	    pixel(xc-x, yc-y, luma);
+	    pixel(xc+y, yc+x, luma);
+	    pixel(xc-y, yc+x, luma);
+	    pixel(xc+y, yc-x, luma);
+	    pixel(xc-y, yc-x, luma);
 	}
 }
  
 
-void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, char color)
+void Teensy4NTSC::circle(int xc, int yc, int r, char luma, bool fill)
 {
     int x = 0, y = r;
     int d = 3 - 2 * r;
-    circleStep(xc, yc, x, y, fill, color);
+    circleStep(xc, yc, x, y, fill, luma);
     while (y >= x++)
     {
         if (d > 0)
@@ -299,24 +295,24 @@ void Teensy4NTSC::circle(int xc, int yc, int r, bool fill, char color)
         }
         else
             d = d + 4 * x + 6;
-        circleStep(xc, yc, x, y, fill, color);
+        circleStep(xc, yc, x, y, fill, luma);
     }
 }
 
 
-void Teensy4NTSC::character(int c, int x, int y, char color){	
+void Teensy4NTSC::character(int c, int x, int y, char luma){	
 	for(int j = 0; j < 12; j++){
 		char row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
 		for(int i = 0; i < 8; i++){ 
-			if(row & (0x80 >> i)) pixel(x + i, y - j, color);
+			if(row & (0x80 >> i)) pixel(x + i, y - j, luma);
 		}
 	}
 }
 
-void Teensy4NTSC::text(const char* s, int x, int y, char color){
+void Teensy4NTSC::text(const char* s, int x, int y, char luma){
 	char c;
 	while((c = *s++)){
-		character(c, x, y, color);
+		character(c, x, y, luma);
 		x += 8;
 	}
 }
