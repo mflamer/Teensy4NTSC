@@ -52,6 +52,7 @@ private:
 	static const int v_blank_lines = 12;
 
 	static char buffer[v_active_lines + v_blank_lines][HRES] __attribute__((aligned(32)));
+	static char (*active_buffer)[HRES];
 	static DMAChannel dma;	
     
 	
@@ -67,7 +68,8 @@ private:
 //FlexIO pin 0  - teensy pin 10 LSB
 //FlexIO pin 1  - teensy pin 12
 //FlexIO pin 2  - teensy pin 11	 
-//FlexIO pin 3  - teensy pin 13  
+//FlexIO pin 3  - teensy pin 13
+
 //FlexIO pin 16 - teensy pin 8
 //FlexIO pin 17 - teensy pin 7
 //FlexIO pin 18 - teensy pin 36 

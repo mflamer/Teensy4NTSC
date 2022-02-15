@@ -14,19 +14,18 @@ void setup() {
 	// pins =  6|7|8|9|10|11|12|13|35|36|37|39
 	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
 
-   	ntsc = Teensy4NTSC(240);  
+   	ntsc = Teensy4NTSC(216);  
     ntsc.start();
 
 
-   	ntsc.clear();
+   	ntsc.clear(0xFF);
     for(int x = 0; x < ntsc.h_res; x++){
         for(int y = 0; y < ntsc.v_res; y++){
             ntsc.pixel(x, y, x & 0xFF);
         }
     }
-   	// ntsc.pixel(3, ntsc.v_res-1, 0x00);
-    // ntsc.pixel(ntsc.h_res-3, ntsc.v_res-1, 0x00);
-   	ntsc.dump_buffer(); 
+   	
+   	
 
    	//pinMode(36, OUTPUT);
    	//digitalWrite(36, HIGH);
@@ -44,7 +43,7 @@ void setup() {
    	// ntsc.line(0, 0, ntsc.h_res-1, ntsc.v_res-1);
    	// ntsc.line(0, ntsc.v_res-1, ntsc.h_res-1, 0);
 
-   	// ntsc.rectangle(0, 0, ntsc.h_res-1, ntsc.v_res-1);
+   	//ntsc.rectangle(0, 0, ntsc.h_res-1, ntsc.v_res-1, false, 0x77);
    	// ntsc.rectangle(0, 18, ntsc.h_res-1, ntsc.v_res-19);
 
    	// ntsc.rectangle(0, 0, 20, 20, true);
@@ -59,6 +58,8 @@ void setup() {
 
    	// ntsc.text("Hello World! \x1 \x12", 4, 180);
    	// ntsc.text("This is NTSC from RAM -> DMA -> FlexIO", 4, 50, BLACK);
+
+    ntsc.dump_buffer(); 
    	
 }
 
@@ -193,54 +194,54 @@ void loop() {
   //   }
 
   // delay(1000);
-/*
- //grayFizz
- ntsc.clear();
- for (t = 0; t < 1000; t++)
-   {
-        x = random(ntsc.h_res);
-      y = random(ntsc.v_res);
-      r = random(10);
-      fill = int(random(0, 15));
-      line = int(random(0, 15));
-      ntsc.circle(x, y, r, fill, line);
-      ntsc.text("Fizz, fizz, fizz...", 4, 15);
-      ntsc.dump_buffer();
-    }
+// /*
+//  //grayFizz
+//  ntsc.clear();
+//  for (t = 0; t < 1000; t++)
+//    {
+//         x = random(ntsc.h_res);
+//       y = random(ntsc.v_res);
+//       r = random(10);
+//       fill = int(random(0, 15));
+//       line = int(random(0, 15));
+//       ntsc.circle(x, y, r, fill, line);
+//       ntsc.text("Fizz, fizz, fizz...", 4, 15);
+//       ntsc.dump_buffer();
+//     }
 
- delay(1000);
+//  delay(1000);
 
   //plotFade
-  int fadeLength = 50; //number of frames over which to fade a trace to black
+ //  int fadeLength = 50; //number of frames over which to fade a trace to black
 
-  ntsc.clear();
+ //  ntsc.clear();
 
-  for (int loopCount = 0; loopCount < 5; loopCount++)
-  {
-    k = random(0,64)/16.0;
-    for (x = 0; x <= ntsc.h_res; x++)
-        {
-          samples[x] = int(ntsc.v_res/2 + (ntsc.v_res/2)*sin(k*6.28*x/ntsc.h_res)+0.5);
-          intensity[x] = 15;
-        }
+ //  for (int loopCount = 0; loopCount < 5; loopCount++)
+ //  {
+ //    k = random(0,64)/16.0;
+ //    for (x = 0; x <= ntsc.h_res; x++)
+ //        {
+ //          samples[x] = int(ntsc.v_res/2 + (ntsc.v_res/2)*sin(k*6.28*x/ntsc.h_res)+0.5);
+ //          intensity[x] = 15;
+ //        }
 
-    for (t = 0; t < fadeLength; t++)
-      {
-         for (x = 0; x < ntsc.h_res; x++)
-            {
-              intensity[x] = int(float(intensity[x])*(1.0-1/float(fadeLength)));
-              ntsc.line(x, samples[x], x+1, samples[x+1], intensity[x]);
-              //ntsc.pixel(x, samples[x], intensity[x]);
-            }
+ //    for (t = 0; t < fadeLength; t++)
+ //      {
+ //         for (x = 0; x < ntsc.h_res; x++)
+ //            {
+ //              intensity[x] = int(float(intensity[x])*(1.0-1/float(fadeLength)));
+ //              ntsc.line(x, samples[x], x+1, samples[x+1], intensity[x]);
+ //              //ntsc.pixel(x, samples[x], intensity[x]);
+ //            }
 
-          ntsc.text("Fading trace ", 4, 15);
-          ntsc.dump_buffer();
-          delay(50); //delay must be longer than than NTSC frame time
-      }
+ //          ntsc.text("Fading trace ", 4, 15);
+ //          ntsc.dump_buffer();
+ //          delay(50); //delay must be longer than than NTSC frame time
+ //      }
 
-  }
+ //  }
 
- */
+ // */
   
 
 

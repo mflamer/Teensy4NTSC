@@ -16,11 +16,12 @@
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
 char Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES]  __attribute__((aligned(32))) = {0}; 
 int Teensy4NTSC::v_res = 256;
+char (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
 
 Teensy4NTSC::Teensy4NTSC(int v_res){
 	
-	 this->v_res = MAX(0, MIN(v_res, v_active_lines));   	
-   	  	
+	this->v_res = MAX(0, MIN(v_res, v_active_lines)); 
+   	this->active_buffer = buffer + ((v_active_lines - v_res) >> 1);
    	
 }
 
@@ -160,10 +161,7 @@ int Teensy4NTSC::clampH(int v){
 }
     
 int Teensy4NTSC::clampV(int v){ 
-	int floor_y = (v_active_lines - v_res) >> 1;
-	int ceil_y = floor_y + v_res;
-	v += floor_y; 
-	return MIN(ceil_y, MAX(floor_y, v));
+	return MIN(v_res - 1, MAX(0, v));
 }
 
 void Teensy4NTSC::order(int* v0, int* v1){
@@ -174,24 +172,29 @@ void Teensy4NTSC::order(int* v0, int* v1){
 	}
 }
 
-// // Shuffle for kludgy bit storage due to FlexIO -> Teensy pin layout
-// void set_pixel(char* a, char c){
+// Swizzle low and high nibbles for DMA -> FlexIO access 
+// |L,x| 15 Bytes |H,x| 15 Bytes |  
+void swizzle(char* addr, char pix){
+	int a = (int)addr;
+   	char* a_ = (char*)((a & 0xFFFFFFE0) | ((a & 0x1F) >> 1));
+   	if(a & 0x1){ // this is an odd pixel
+	   *(a_) &= 0x0F; 			 	 // clear high nibble
+	   *(a_) |= ((0x0F & pix) << 4); // set high nibble  
+	   *(a_ + 16) &= 0x0F; 			 // clear high nibble
+	   *(a_ + 16) |= (0xF0 & pix);  // set high nibble   	
+	}
+	else{ // this is an even pixel
+	   *(a_) &= 0xF0; 			 	 // clear low nibble
+	   *(a_) |= (0x0F & pix); // set high nibble  
+	   *(a_ + 16) &= 0xF0; 			 // clear high nibble
+	   *(a_ + 16) |= ((0xF0 & pix) >> 4);  // set low nibble   	
+	}
+}
 
-
-// 	return ((c & 0xE0) << 24) | ((c & 0x1E) << 21) | ((c & 0x01) << 13);
-// }
-
-void Teensy4NTSC::clear(char color){    
-	int floor_y = (v_active_lines - v_res) >> 1;
-	int ceil_y = floor_y + v_res;
-	// for (int j = floor_y; j <= ceil_y; j++) {
- //      	for (int i = 0; i < HRES; i++) {
- //           	pixel(i, j, color);
- //      	}
- //   	}
-	for (int j = 0; j < v_active_lines; j++) {
-      	for (int i = 0; i < HRES; i++) {
-           	pixel(i, j, color);
+void Teensy4NTSC::clear(char color){  
+	for (int j = 0; j < v_res; j++) {
+      	for (int i = 0; i < h_res; i++) {
+           	swizzle(&active_buffer[j][i], color);
       	}
    	}
 }
@@ -204,31 +207,15 @@ void Teensy4NTSC::dump_buffer(){
       	}
       	Serial.print(" |\n");
    	}
-	//Serial.print(FLEXIO2_SHIFTERR);
+	//Serial.print(FLEXIO2_SHIFTERR); // debug dma access issues
 }
-
-
 
 void Teensy4NTSC::pixel(int x, int y, char color){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_active_lines - 1) - y; // set origin at bottom left
-   int a = (int)&buffer[_y][x];
-   char* a_ = ((a & 0xFFFFFFE0) | ((a & 0x1F) >> 1));
-   if(a & 0x1){ // this is an odd pixel
-	   *(a_) &= 0x0F; 			 	 // clear high nibble
-	   *(a_) |= ((0x0F & color) << 4); // set high nibble  
-	   *(a_ + 16) &= 0x0F; 			 // clear high nibble
-	   *(a_ + 16) |= (0xF0 & color);  // set high nibble   	
-	}
-	else{ // this is an even pixel
-	   *(a_) &= 0xF0; 			 	 // clear low nibble
-	   *(a_) |= (0x0F & color); // set high nibble  
-	   *(a_ + 16) &= 0xF0; 			 // clear high nibble
-	   *(a_ + 16) |= ((0xF0 & color) >> 4);  // set low nibble   	
-	}
+   swizzle(&active_buffer[_y][x], color);
 }
-
 
 void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char color)
 {
