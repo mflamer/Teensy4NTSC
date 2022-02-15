@@ -8,21 +8,21 @@ typedef unsigned char byte;
 
 class Teensy4NTSC {
 public:	
-	// Start the system and begin sending the NTSC signal on the pins. 
-	// v_res = Display vertical resolution. Optimal value depends on display device. Max = 256.
+	// Start the system and begin sending the NTSC signal. 
+	// v_res = The desired display vertical resolution. Optimal value depends on display device. Max = 256.
 	// Note: h_res is fixed at 320.
 	void begin(int v_res = 256);
 
-	// Output pins are fixed 
+	// Output pins
 	// 9 = Sync
 	// 37, 36, 7, 8, 13, 11, 12, 10 = MSB-LSB for 8 bit grayscale
-
-	// Clear screen to a luma
-	void	clear(char luma = BLACK);
+	
 
 	//// Drawing functions /////////////////////////////////////////////////////////////////////
-	// The follwing functions draw shapes in either white (default) or black.
+	// The follwing functions draw shapes in a specified luma
 	//
+	// Clear screen to a luma
+	void	clear(char luma = BLACK);
 	// Draw a pixel at a specified (x, y) coordinate 		
 	void 	pixel(int x, int y, char luma = WHITE);
 	// Draw a line from (x0,y0) to (x1,y1) 
@@ -40,8 +40,8 @@ public:
 	// Dump the buffer to serial for debugging
 	void	dump_buffer();
 
-	static int v_res;
 	#define HRES 320
+	static int v_res;
 	static const int h_res = HRES;
 	
 
