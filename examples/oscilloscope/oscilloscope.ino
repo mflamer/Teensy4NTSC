@@ -22,9 +22,12 @@ uint8_t ADC_Max = 255;
 uint8_t ADC_Center = ADC_Max >> 1;
 
 void setup() {
-    // Create object and set pin selections
-    // pins = 6|7|8|9|10|11|12|13|35|36|37|39
-    ntsc = Teensy4NTSC(6, 7, V_RES);  
+
+    // Start the system and begin sending the NTSC signal. 
+    // v_res = The desired display vertical resolution. Optimal value depends on display device. Max = 256.
+    // Note: h_res is fixed at 320.
+    ntsc.begin(210);
+    
     analogReadResolution(analogResolution);
     timer.begin(sample, 15); //Last variable is time between events in microseconds. In previous tests went well above 100kHz, but here maybe 67kSPS (15 us) max?
     //Testing done at default 600 MHz clock speed.

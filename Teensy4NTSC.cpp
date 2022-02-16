@@ -14,9 +14,9 @@
 
 
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-char Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES]  __attribute__((aligned(32))) = {0}; 
+byte Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES]  __attribute__((aligned(32))) = {0}; 
 int Teensy4NTSC::v_res = 256;
-char (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
+byte (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
 
 
 void Teensy4NTSC::begin(int v_res){
@@ -168,9 +168,9 @@ void Teensy4NTSC::order(int* v0, int* v1){
 
 // Swizzle low and high nibbles for DMA -> FlexIO access 
 // |L,x| 15 Bytes |H,x| 15 Bytes |  
-void swizzle(char* addr, char pix){
+void swizzle(byte* addr, byte pix){
 	int a = (int)addr;
-   	char* a_ = (char*)((a & 0xFFFFFFE0) | ((a & 0x1F) >> 1));
+   	byte* a_ = (byte*)((a & 0xFFFFFFE0) | ((a & 0x1F) >> 1));
    	if(a & 0x1){ // this is an odd pixel
 	   *(a_) &= 0x0F; 			 	 // clear high nibble
 	   *(a_) |= ((0x0F & pix) << 4); // set high nibble  
@@ -185,7 +185,7 @@ void swizzle(char* addr, char pix){
 	}
 }
 
-void Teensy4NTSC::clear(char luma){  
+void Teensy4NTSC::clear(byte luma){  
 	for (int j = 0; j < v_res; j++) {
       	for (int i = 0; i < h_res; i++) {
            	swizzle(&active_buffer[j][i], luma);
@@ -204,14 +204,14 @@ void Teensy4NTSC::dump_buffer(){
 	//Serial.print(FLEXIO2_SHIFTERR); // debug dma access issues
 }
 
-void Teensy4NTSC::pixel(int x, int y, char luma){
+void Teensy4NTSC::pixel(int x, int y, byte luma){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_res - 1) - y; // set origin at bottom left
    swizzle(&active_buffer[_y][x], luma);
 }
 
-void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char luma)
+void Teensy4NTSC::line(int x0, int y0, int x1, int y1, byte luma)
 {
     int dx =  abs(x1-x0);
     int sx = x0<x1 ? 1 : -1;
@@ -234,7 +234,7 @@ void Teensy4NTSC::line(int x0, int y0, int x1, int y1, char luma)
 }
 
 
-void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, char luma, bool fill){
+void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, byte luma, bool fill){
 
 	if(fill){
 		order(&y0, &y1);
@@ -253,7 +253,7 @@ void Teensy4NTSC::rectangle(int x0, int y0, int x1, int y1, char luma, bool fill
 }
 
 
-void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, char luma, bool fill)
+void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, byte luma, bool fill)
 {
 	if(fill){
 		line(xc+x, yc+y, xc-x, yc+y, luma);
@@ -278,7 +278,7 @@ void Teensy4NTSC::circleStep(int xc, int yc, int x, int y, char luma, bool fill)
 }
  
 
-void Teensy4NTSC::circle(int xc, int yc, int r, char luma, bool fill)
+void Teensy4NTSC::circle(int xc, int yc, int r, byte luma, bool fill)
 {
     int x = 0, y = r;
     int d = 3 - 2 * r;
@@ -297,17 +297,17 @@ void Teensy4NTSC::circle(int xc, int yc, int r, char luma, bool fill)
 }
 
 
-void Teensy4NTSC::character(int c, int x, int y, char luma){	
+void Teensy4NTSC::character(int c, int x, int y, byte luma){	
 	for(int j = 0; j < 12; j++){
-		char row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
+		byte row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
 		for(int i = 0; i < 8; i++){ 
 			if(row & (0x80 >> i)) pixel(x + i, y - j, luma);
 		}
 	}
 }
 
-void Teensy4NTSC::text(const char* s, int x, int y, char luma){
-	char c;
+void Teensy4NTSC::text(const byte* s, int x, int y, byte luma){
+	byte c;
 	while((c = *s++)){
 		character(c, x, y, luma);
 		x += 8;
