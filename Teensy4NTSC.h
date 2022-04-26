@@ -21,19 +21,19 @@ public:
 	// The follwing functions draw shapes in a specified luma
 	//
 	// Clear screen to a luma
-	void	clear(byte luma = BLACK);
+	void	clear(char luma = BLACK);
 	// Draw a pixel at a specified (x, y) coordinate 		
-	void 	pixel(int x, int y, byte luma = WHITE);
+	void 	pixel(int x, int y, char luma = WHITE);
 	// Draw a line from (x0,y0) to (x1,y1) 
-	void	line(int x0, int y0, int x1, int y1, byte luma = WHITE);
+	void	line(int x0, int y0, int x1, int y1, char luma = WHITE);
 	// Draw a filled or empty rectangle defined by lower left and top right coordinates
-	void	rectangle(int x0, int y0, int x1, int y1, byte luma = WHITE, bool fill = true);
+	void	rectangle(int x0, int y0, int x1, int y1, char luma = WHITE, bool fill = true);
 	// Draw a filled or empty circle defined by a center coordinate and radius
-	void	circle(int xc, int yc, int r, byte luma = WHITE, bool fill = true);
+	void	circle(int xc, int yc, int r, char luma = WHITE, bool fill = true);
 	// Draw a single character at a specified coordinate.
-	void	character(int c, int x, int y, byte luma = WHITE);
+	void	character(int c, int x, int y, char luma = WHITE);
 	// Draw a single string of characters at a specified coordinate.
-	void	text(const byte* s, int x, int y, byte luma = WHITE);
+	void	text(const char* s, int x, int y, char luma = WHITE);
 
 
 	// Dump the buffer to serial for debugging
@@ -49,8 +49,8 @@ private:
 	static const int v_active_lines = 256;
 	static const int v_blank_lines = 12;
 
-	static byte buffer[v_active_lines + v_blank_lines][HRES] __attribute__((aligned(32)));
-	static byte (*active_buffer)[HRES];
+	static char buffer[v_active_lines + v_blank_lines][HRES] __attribute__((aligned(32)));
+	static char (*active_buffer)[HRES];
 	static DMAChannel dma;	
     
 	
@@ -58,7 +58,7 @@ private:
     int 	clampV(int v);
     void 	order(int* v0, int* v1);
 
-    void	circleStep(int xc, int yc, int x, int y, byte luma, bool fill);
+    void	circleStep(int xc, int yc, int x, int y, char luma, bool fill);
     
 };
 

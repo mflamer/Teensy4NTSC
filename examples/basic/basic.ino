@@ -10,7 +10,7 @@ void setup() {
 	// Start the system and begin sending the NTSC signal. 
     // v_res = The desired display vertical resolution. Optimal value depends on display device. Max = 256.
     // Note: h_res is fixed at 320.
-    ntsc.begin(256);
+    ntsc.begin(240);
     ntsc.clear();
 
     // for(int y = 0; y < ntsc.v_res; y++){
