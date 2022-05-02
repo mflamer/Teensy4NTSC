@@ -14,14 +14,32 @@
 
 
 DMAChannel Teensy4NTSC::dma = DMAChannel(false);
-byte Teensy4NTSC::buffer[v_active_lines + v_blank_lines][HRES]  __attribute__((aligned(32))) = {0}; 
+byte Teensy4NTSC::buffer[2 * v_total_lines * HRES]  __attribute__((aligned(32))) = {0}; 
 int Teensy4NTSC::v_res = 256;
-byte (*Teensy4NTSC::active_buffer)[HRES] = Teensy4NTSC::buffer;
+byte* Teensy4NTSC::active_buffer = Teensy4NTSC::buffer;
 
 
-void Teensy4NTSC::begin(int v_res){
+void Teensy4NTSC::swap(){	
+	static bool low_buffer = true;
+	if(low_buffer){
+		Serial.println("drew low");
+		this->active_buffer = &buffer[(v_total_lines + ((v_active_lines - this->v_res) >> 1)) * HRES];
+		low_buffer = false;
+	}
+	else{
+		Serial.println("drew high");
+		this->active_buffer = &buffer[((v_active_lines - this->v_res) >> 1) * HRES];
+		low_buffer = true;
+	}
+
+	dma.clearInterrupt();  
+    asm("DSB");
+}
+
+
+void Teensy4NTSC::begin(void (*draw)(void), int v_res){
 	this->v_res = MAX(0, MIN(v_res, v_active_lines)); 
-   	this->active_buffer = buffer + ((v_active_lines - this->v_res) >> 1);
+   	this->active_buffer = &buffer[(v_active_lines - this->v_res) >> 1];
    	
 	/////////////////////////////////////////////////////////////////////////////////////
 	//DMA Setup
@@ -33,19 +51,24 @@ void Teensy4NTSC::begin(int v_res){
    	dma.TCD->SADDR			= buffer;
 	dma.TCD->SOFF			= 4;
 	dma.TCD->ATTR_SRC		= 2;
-	dma.TCD->SLAST			= -(HRES * (v_active_lines + v_blank_lines));
+	dma.TCD->SLAST			= -2 * (HRES * (v_active_lines + v_blank_lines));
 
 	dma.TCD->DADDR			= &FLEXIO2_SHIFTBUF0;
 	dma.TCD->DOFF			= 4;
 	dma.TCD->ATTR_DST		= (5 << 3) | 2;	
 	dma.TCD->DLASTSGA		= 0;
 
-	dma.TCD->BITER		= ((HRES * (v_active_lines + v_blank_lines)) / 32);
-	dma.TCD->CITER		= ((HRES * (v_active_lines + v_blank_lines)) / 32);
+	dma.TCD->BITER		= 2 * ((HRES * (v_active_lines + v_blank_lines)) / 32);
+	dma.TCD->CITER		= 2 * ((HRES * (v_active_lines + v_blank_lines)) / 32);
 
    	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_FLEXIO2_REQUEST0);
    	// do not disable the channel after it completes - so it just keeps going 
-   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);	  	
+   	dma.TCD->CSR	&= ~(DMA_TCD_CSR_DREQ);	  
+
+   	dma.attachInterrupt(draw);
+   	// interrupt at completion and at half completion
+    dma.TCD->CSR |= DMA_TCD_CSR_INTMAJOR | DMA_TCD_CSR_INTHALF;
+   
 
 	/////////////////////////////////////////////////////////////////////////////////////
    	// Setup FlexIO
@@ -186,9 +209,27 @@ void swizzle(byte* addr, byte pix){
 }
 
 void Teensy4NTSC::clear(byte luma){  
+	if(luma == 0x00 || luma == 0xFF){ //fast clear to black or white
+		for (int j = 0; j < v_res; j++) {
+	      	for (int i = 0; i < h_res; i++) {
+	           	active_buffer[(j * HRES) + i] = luma;
+	      	}
+	   	}
+	}
+	else 
+	{
+		for (int j = 0; j < v_res; j++) {
+	      	for (int i = 0; i < h_res; i++) {
+	           	swizzle(&active_buffer[(j * HRES) + i], luma);
+	      	}
+	   	}
+	}
+}
+
+void Teensy4NTSC::copy(byte* src){
 	for (int j = 0; j < v_res; j++) {
       	for (int i = 0; i < h_res; i++) {
-           	swizzle(&active_buffer[j][i], luma);
+           	swizzle(&active_buffer[(j * HRES) + i], src[j*HRES + i]);
       	}
    	}
 }
@@ -196,8 +237,8 @@ void Teensy4NTSC::clear(byte luma){
 void Teensy4NTSC::dump_buffer(){
 	for (int j = 0; j < 268; j++) {
       	for (int i = 0; i < HRES; i++) {
-           	Serial.print(buffer[j][i] & 0x0F, HEX);
-           	Serial.print((buffer[j][i] >> 4) & 0x0F, HEX);
+           	Serial.print(buffer[(j * HRES) + i] & 0x0F, HEX);
+           	Serial.print((buffer[(j * HRES) + i] >> 4) & 0x0F, HEX);
       	}
       	Serial.print(" |\n");
    	}
@@ -208,7 +249,7 @@ void Teensy4NTSC::pixel(int x, int y, byte luma){
    x = clampH(x); 
    y = clampV(y); 
    int _y = (v_res - 1) - y; // set origin at bottom left
-   swizzle(&active_buffer[_y][x], luma);
+   swizzle(&active_buffer[(_y * HRES) + x], luma);
 }
 
 void Teensy4NTSC::line(int x0, int y0, int x1, int y1, byte luma)
@@ -297,7 +338,7 @@ void Teensy4NTSC::circle(int xc, int yc, int r, byte luma, bool fill)
 }
 
 
-void Teensy4NTSC::character(int c, int x, int y, byte luma){	
+void Teensy4NTSC::character(char c, int x, int y, byte luma){	
 	for(int j = 0; j < 12; j++){
 		byte row = charmap[((c >> 4) * 192) + (c & 0xF) + (j * 16)];		
 		for(int i = 0; i < 8; i++){ 
@@ -306,7 +347,7 @@ void Teensy4NTSC::character(int c, int x, int y, byte luma){
 	}
 }
 
-void Teensy4NTSC::text(const byte* s, int x, int y, byte luma){
+void Teensy4NTSC::text(const char* s, int x, int y, byte luma){
 	byte c;
 	while((c = *s++)){
 		character(c, x, y, luma);

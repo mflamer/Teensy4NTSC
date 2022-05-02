@@ -11,7 +11,9 @@ public:
 	// Start the system and begin sending the NTSC signal. 
 	// v_res = The desired display vertical resolution. Optimal value depends on display device. Max = 256.
 	// Note: h_res is fixed at 320.
-	void begin(int v_res = 256);
+	void begin(void (*draw)(void), int v_res = 256);
+
+	void swap();
 
 	// Output pins
 	// 9 = Sync
@@ -22,6 +24,8 @@ public:
 	//
 	// Clear screen to a luma
 	void	clear(byte luma = BLACK);
+	// Copy a buffer of pixels into the buffer. User must verify size of src!
+	void	copy(byte* src);
 	// Draw a pixel at a specified (x, y) coordinate 		
 	void 	pixel(int x, int y, byte luma = WHITE);
 	// Draw a line from (x0,y0) to (x1,y1) 
@@ -31,9 +35,9 @@ public:
 	// Draw a filled or empty circle defined by a center coordinate and radius
 	void	circle(int xc, int yc, int r, byte luma = WHITE, bool fill = true);
 	// Draw a single character at a specified coordinate.
-	void	character(int c, int x, int y, byte luma = WHITE);
+	void	character(char c, int x, int y, byte luma = WHITE);
 	// Draw a single string of characters at a specified coordinate.
-	void	text(const byte* s, int x, int y, byte luma = WHITE);
+	void	text(const char* s, int x, int y, byte luma = WHITE);
 
 
 	// Dump the buffer to serial for debugging
@@ -48,9 +52,11 @@ private:
 	// constant parameters
 	static const int v_active_lines = 256;
 	static const int v_blank_lines = 12;
+	static const int v_total_lines = v_active_lines + v_blank_lines;
 
-	static byte buffer[v_active_lines + v_blank_lines][HRES] __attribute__((aligned(32)));
-	static byte (*active_buffer)[HRES];
+
+	static byte buffer[2 * v_total_lines * HRES] __attribute__((aligned(32)));
+	static byte* active_buffer;
 	static DMAChannel dma;	
     
 	
